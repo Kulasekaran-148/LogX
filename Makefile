@@ -4,13 +4,20 @@
 
 # ---- Project setup ----
 PROJECT     := LogX
-VERSION     := 1.0.0
 BUILD_DIR   := build
 SRC_DIR     := src
 INC_DIR     := include
-TARGET_STATIC := liblogx.a
-TARGET_SHARED := liblogx.so
-SONAME      := liblogx.so.$(MAJOR_VER)
+
+# Extract version numbers from version.h
+MAJOR := $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+MINOR := $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+PATCH := $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
+VERSION := $(MAJOR).$(MINOR).$(PATCH)
+
+TARGET			:= logx
+TARGET_STATIC := $(BUILD_DIR)/lib$(TARGET).a
+TARGET_SHARED := $(BUILD_DIR)/lib$(TARGET).so
+SONAME      := lib$(TARGET).so.$(VERSION)
 
 # ---- Compiler settings ----
 CC          := gcc
@@ -58,7 +65,7 @@ $(TARGET_STATIC): $(OBJ_FILES)
 # ---- Shared library with versioning ----
 $(TARGET_SHARED): $(OBJ_FILES)
 	@echo "⚙️  Creating versioned shared library..."
-	@$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(SONAME) -o liblogx.so.$(VERSION) $^
+	@$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(SONAME) -o $(BUILD_DIR)/liblogx.so.$(VERSION) $^
 	@ln -sf liblogx.so.$(VERSION) $(SONAME)
 	@ln -sf $(SONAME) $(TARGET_SHARED)
 	@echo "✅ Built: liblogx.so.$(VERSION)"
@@ -117,4 +124,36 @@ clean:
 	@rm -rf $(BUILD_DIR) $(TARGET_STATIC) $(TARGET_SHARED)
 	@echo "✅ Clean complete."
 
-.PHONY: all dirs format tidy check test install clean
+# ---- Fresh Build ----
+fresh: clean all
+	@echo "🧼 Clean build started..."
+
+# ---- Help ----
+help:
+	@echo ""
+	@echo "🧰  $(PROJECT) - v$(VERSION)"
+	@echo "------------------------------------------------------------"
+	@echo "Available targets:"
+	@echo ""
+	@echo "  make                          - Build both static and shared libraries"
+	@echo "  make BUILD_TYPE=Release       - Build in Release mode (optimized)"
+	@echo "  make clean                    - Clean all build artifacts"
+	@echo "  make fresh                    - Clean and build"
+	@echo "  make format                   - Run clang-format on all source and headers"
+	@echo "  make tidy                     - Run clang-tidy static analysis"
+	@echo "  make check                    - Run both formatting and lint checks"
+	@echo "  make test                     - Build and run example test"
+	@echo "  sudo make install              - Install library system-wide (headers, libs, pkg-config)"
+	@echo "  make help                     - Show this help message"
+	@echo ""
+	@echo "Directories:"
+	@echo "  Source:     $(SRC_DIR)"
+	@echo "  Includes:   $(INC_DIR)"
+	@echo "  Build out:  $(BUILD_DIR)"
+	@echo ""
+	@echo "------------------------------------------------------------"
+	@echo "Example:"
+	@echo "  make BUILD_TYPE=Release clean all"
+	@echo ""
+
+.PHONY: all dirs format tidy check test install clean fresh
