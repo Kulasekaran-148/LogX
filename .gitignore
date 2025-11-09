@@ -53,3 +53,14 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# IDE
+*.vscode
+
+# example artifacts
+*./example/binaries
+*./example/logs
+
+# test artifacts
+*./test/binaries
+*./test/logs

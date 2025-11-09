@@ -8,6 +8,16 @@ BUILD_DIR   := build
 SRC_DIR     := src
 INC_DIR     := include
 
+EXAMPLE_DIR := examples
+EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/*.c)
+EXAMPLE_BIN_DIR := examples/binaries
+EXAMPLE_BINS := $(patsubst examples/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
+
+TEST_DIR    := tests
+TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
+TEST_BIN_DIR := tests/binaries
+TEST_BINS := $(patsubst tests/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
+
 # Extract version numbers from version.h
 MAJOR := $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
 MINOR := $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
@@ -46,7 +56,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 # ---- Default rule ----
-all: dirs $(TARGET_STATIC) $(TARGET_SHARED)
+all: dirs $(TARGET_STATIC) $(TARGET_SHARED) example test
 
 dirs:
 	@mkdir -p $(BUILD_DIR)
@@ -65,10 +75,10 @@ $(TARGET_STATIC): $(OBJ_FILES)
 # ---- Shared library with versioning ----
 $(TARGET_SHARED): $(OBJ_FILES)
 	@echo "⚙️  Creating versioned shared library..."
-	@$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(SONAME) -o $(BUILD_DIR)/liblogx.so.$(VERSION) $^
-	@ln -sf liblogx.so.$(VERSION) $(SONAME)
-	@ln -sf $(SONAME) $(TARGET_SHARED)
-	@echo "✅ Built: liblogx.so.$(VERSION)"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(SONAME) -o $(BUILD_DIR)/lib$(TARGET).so.$(VERSION) $^
+	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(VERSION) lib$(TARGET).so.$(MAJOR)
+	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(MAJOR) lib$(TARGET).so
+	@echo "✅ Built: lib$(TARGET).so.$(VERSION)"
 	
 # ---- Formatting & Linting ----
 format:
@@ -81,47 +91,33 @@ tidy:
 	@$(TIDY) $(SRC_FILES) -- -I$(INC_DIR)
 	@echo "✅ Clang-tidy check complete."
 
-check: format tidy
-
 # ---- Testing ----
-test: all
+test: $(TEST_BIN_DIR) $(TEST_BINS)
 	@echo "🧪 Building test..."
-	@$(CC) $(CFLAGS) tests/test_logx.c -L. -llogx -o $(BUILD_DIR)/test_logx
-	@echo "▶️  Running test..."
-	@LD_LIBRARY_PATH=. ./$(BUILD_DIR)/test_logx
 
-# ---- Installation ----
-install: all
-	@echo "📦 Installing LogX v$(VERSION)..."
-	@sudo mkdir -p /usr/local/include/logx /usr/local/lib/pkgconfig
-	@sudo cp $(INC_DIR)/*.h /usr/local/include/logx/
+$(TEST_BIN_DIR):
+	mkdir -p $(TEST_BIN_DIR)
 
-	# Install libraries
-	@sudo cp liblogx.so.$(VERSION) /usr/local/lib/
-	@cd /usr/local/lib && sudo ln -sf liblogx.so.$(VERSION) $(SONAME)
-	@cd /usr/local/lib && sudo ln -sf $(SONAME) liblogx.so
-	@sudo cp $(TARGET_STATIC) /usr/local/lib/
+$(TEST_BIN_DIR)/%: tests/%.c $(STATIC_LIB) $(SHARED_LIB)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -llogx -o $@
 
-	# Install pkg-config file
-	@echo "prefix=/usr/local" | sudo tee /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "exec_prefix=\$${prefix}" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "includedir=\$${prefix}/include" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "libdir=\$${prefix}/lib" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "Name: logx" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "Description: LogX - Production-grade logging library" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "Version: $(VERSION)" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "Cflags: -I\$${includedir}/logx" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
-	@echo "Libs: -L\$${libdir} -llogx" | sudo tee -a /usr/local/lib/pkgconfig/logx.pc > /dev/null
+# ---- Examples ----
+# Examples directory
+example: $(EXAMPLE_BIN_DIR) $(EXAMPLE_BINS)
+	@echo "🗺️ Building examples..."
 
-	@sudo ldconfig
-	@echo "✅ Installed LogX $(VERSION) to /usr/local"
+$(EXAMPLE_BIN_DIR):
+	mkdir -p $(EXAMPLE_BIN_DIR)
+
+# Pattern rule for building example binaries
+$(EXAMPLE_BIN_DIR)/%: examples/%.c $(STATIC_LIB) $(SHARED_LIB)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -llogx -o $@
 
 
 # ---- Cleanup ----
 clean:
 	@echo "🧹 Cleaning build..."
-	@rm -rf $(BUILD_DIR) $(TARGET_STATIC) $(TARGET_SHARED)
+	@rm -rf $(BUILD_DIR)
 	@echo "✅ Clean complete."
 
 # ---- Fresh Build ----
@@ -141,19 +137,13 @@ help:
 	@echo "  make fresh                    - Clean and build"
 	@echo "  make format                   - Run clang-format on all source and headers"
 	@echo "  make tidy                     - Run clang-tidy static analysis"
-	@echo "  make check                    - Run both formatting and lint checks"
-	@echo "  make test                     - Build and run example test"
-	@echo "  sudo make install              - Install library system-wide (headers, libs, pkg-config)"
+	@echo "  make example									 - Build examples"
+	@echo "  make test                     - Build tests"
 	@echo "  make help                     - Show this help message"
-	@echo ""
-	@echo "Directories:"
-	@echo "  Source:     $(SRC_DIR)"
-	@echo "  Includes:   $(INC_DIR)"
-	@echo "  Build out:  $(BUILD_DIR)"
 	@echo ""
 	@echo "------------------------------------------------------------"
 	@echo "Example:"
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check test install clean fresh
+.PHONY: all dirs format tidy check example test install clean fresh
