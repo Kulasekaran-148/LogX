@@ -1,6 +1,8 @@
 #ifndef LOGX_CONFIG_KEYS_H
 #define LOGX_CONFIG_KEYS_H
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -11,11 +11,13 @@ INC_DIR     := include
 EXAMPLE_DIR := examples
 EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/*.c)
 EXAMPLE_BIN_DIR := examples/binaries
+EXAMPLE_LOG_DIR := examples/logs
 EXAMPLE_BINS := $(patsubst examples/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
 
 TEST_DIR    := tests
 TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
 TEST_BIN_DIR := tests/binaries
+TEST_LOG_DIR := tests/logs
 TEST_BINS := $(patsubst tests/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
 
 # Extract version numbers from version.h
@@ -28,6 +30,8 @@ TARGET			:= logx
 TARGET_STATIC := $(BUILD_DIR)/lib$(TARGET).a
 TARGET_SHARED := $(BUILD_DIR)/lib$(TARGET).so
 SONAME      := lib$(TARGET).so.$(VERSION)
+
+LIBS = -llogx -lyaml -lcjson
 
 # ---- Compiler settings ----
 CC          := gcc
@@ -94,35 +98,44 @@ tidy:
 # ---- Testing ----
 test: $(TEST_BIN_DIR) $(TEST_BINS)
 	@echo "🧪 Building test..."
+	@echo "✅ Built tests → $(TEST_BIN_DIR)"
 
 $(TEST_BIN_DIR):
 	mkdir -p $(TEST_BIN_DIR)
 
 $(TEST_BIN_DIR)/%: tests/%.c $(STATIC_LIB) $(SHARED_LIB)
-	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -llogx -o $@
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Examples ----
-# Examples directory
 example: $(EXAMPLE_BIN_DIR) $(EXAMPLE_BINS)
-	@echo "🗺️ Building examples..."
+	@echo "🗺️  Building examples..."
+	@echo "✅ Built examples → $(EXAMPLE_BIN_DIR)"
 
 $(EXAMPLE_BIN_DIR):
 	mkdir -p $(EXAMPLE_BIN_DIR)
 
 # Pattern rule for building example binaries
 $(EXAMPLE_BIN_DIR)/%: examples/%.c $(STATIC_LIB) $(SHARED_LIB)
-	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) -llogx -o $@
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 
 # ---- Cleanup ----
 clean:
 	@echo "🧹 Cleaning build..."
 	@rm -rf $(BUILD_DIR)
+	@rm -rf $(EXAMPLE_BIN_DIR)
+	@rm -rf $(EXAMPLE_LOG_DIR)
+	@rm -rf $(TEST_BIN_DIR)
+	@rm -rf $(TEST_LOG_DIR)
 	@echo "✅ Clean complete."
 
 # ---- Fresh Build ----
-fresh: clean all
+fresh:
 	@echo "🧼 Clean build started..."
+	@$(MAKE) --no-print-directory clean
+	@$(MAKE) --no-print-directory all
+
+
 
 # ---- Help ----
 help:

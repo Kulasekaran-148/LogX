@@ -269,14 +269,15 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
         return -1;
     }
 
-/* Helper functions */
+/* Define helper macros */
 #define get_str(root, key) \
     (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valuestring : NULL)
 
 #define get_int(root, key) \
-    (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valueint : 0)
+    (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valueint : -1)
 
-#define get_bool(root, key) (cJSON_IsTrue(cJSON_GetObjectItem(root, key)) ? true : false)
+#define get_bool(root, key) \
+    (cJSON_HasObjectItem(root, key) ? cJSON_IsTrue(cJSON_GetObjectItem(root, key)) : -1)
 
     /* Log missing keys for visibility */
     for (size_t i = 0; i < LOGX_CONFIG_KEY_COUNT; ++i)
@@ -289,35 +290,33 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
         }
     }
 
-    /* Begin parsing fields */
-
     /* Basic fields */
     const char *val;
     int         ival;
 
-    val       = get_str(LOGX_KEY_NAME);
+    val       = get_str(root, LOGX_KEY_NAME);
     cfg->name = val ? strdup(val) : LOGX_DEFAULT_CFG_NAME;
 
-    val            = get_str(LOGX_KEY_FILE_PATH);
+    val            = get_str(root, LOGX_KEY_FILE_PATH);
     cfg->file_path = val ? strdup(val) : LOGX_DEFAULT_CFG_PATH;
 
-    ival                        = get_bool(LOGX_KEY_ENABLE_CONSOLE_LOGGING);
+    ival                        = get_bool(root, LOGX_KEY_ENABLE_CONSOLE_LOGGING);
     cfg->enable_console_logging = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_CONSOLE_LOGGING;
 
-    ival                     = get_bool(LOGX_KEY_ENABLE_FILE_LOGGING);
+    ival                     = get_bool(root, LOGX_KEY_ENABLE_FILE_LOGGING);
     cfg->enable_file_logging = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_FILE_LOGGING;
 
-    ival                      = get_bool(LOGX_KEY_ENABLED_COLORED_LOGS);
+    ival                      = get_bool(root, LOGX_KEY_ENABLED_COLORED_LOGS);
     cfg->enabled_colored_logs = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
 
-    ival                   = get_bool(LOGX_KEY_USE_TTY_DETECTION);
+    ival                   = get_bool(root, LOGX_KEY_USE_TTY_DETECTION);
     cfg->use_tty_detection = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION;
 
-    val                 = get_str(LOGX_KEY_BANNER_PATTERN);
+    val                 = get_str(root, LOGX_KEY_BANNER_PATTERN);
     cfg->banner_pattern = val ? strdup(val) : LOGX_DEFAULT_CFG_BANNER_PATTERN;
 
-    /* Console & file log levels */
-    val = get_str(LOGX_KEY_CONSOLE_LEVEL);
+    /* Console log level */
+    val = get_str(root, LOGX_KEY_CONSOLE_LEVEL);
     if (!val)
     {
         cfg->console_level = LOGX_DEFAULT_CFG_CONSOLE_LEVEL;
@@ -332,13 +331,16 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
         cfg->console_level = LOG_LEVEL_WARN;
     else if (strcasecmp(val, "ERROR") == 0)
         cfg->console_level = LOG_LEVEL_ERROR;
+    else if (strcasecmp(val, "FATAL") == 0)
+        cfg->file_level = LOG_LEVEL_FATAL;
     else
     {
-        fprintf(stderr, "[LogX] Invalid console_level value: %s → Using default.\n", val);
+        fprintf(stderr, "[LogX] Invalid console_level: %s → Using default.\n", val);
         cfg->console_level = LOGX_DEFAULT_CFG_CONSOLE_LEVEL;
     }
 
-    val = get_str(LOGX_KEY_FILE_LEVEL);
+    /* File log level */
+    val = get_str(root, LOGX_KEY_FILE_LEVEL);
     if (!val)
     {
         cfg->file_level = LOGX_DEFAULT_CFG_FILE_LEVEL;
@@ -353,14 +355,16 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
         cfg->file_level = LOG_LEVEL_WARN;
     else if (strcasecmp(val, "ERROR") == 0)
         cfg->file_level = LOG_LEVEL_ERROR;
+    else if (strcasecmp(val, "FATAL") == 0)
+        cfg->file_level = LOG_LEVEL_FATAL;
     else
     {
-        fprintf(stderr, "[LogX] Invalid file_level value: %s → Using default.\n", val);
+        fprintf(stderr, "[LogX] Invalid file_level: %s → Using default.\n", val);
         cfg->file_level = LOGX_DEFAULT_CFG_FILE_LEVEL;
     }
 
-    /* Rotation parameters */
-    val = get_str(LOGX_KEY_ROTATE_TYPE);
+    /* Rotation options */
+    val = get_str(root, LOGX_KEY_ROTATE_TYPE);
     if (!val)
         cfg->rotate.type = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     else if (strcasecmp(val, "BY_SIZE") == 0)
@@ -369,21 +373,26 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
         cfg->rotate.type = LOG_ROTATE_BY_DATE;
     else
     {
-        fprintf(stderr, "[LogX] Invalid rotate_type value: %s → Using default.\n", val);
+        fprintf(stderr, "[LogX] Invalid rotate_type: %s → Using default.\n", val);
         cfg->rotate.type = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     }
 
-    ival = get_int(LOGX_KEY_ROTATE_MAX_MBYTES);
+    ival = get_int(root, LOGX_KEY_ROTATE_MAX_MBYTES);
     cfg->rotate.max_bytes =
         (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
 
-    ival                    = get_int(LOGX_KEY_ROTATE_MAX_BACKUPS);
+    ival                    = get_int(root, LOGX_KEY_ROTATE_MAX_BACKUPS);
     cfg->rotate.max_backups = (ival >= 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
 
-    ival                       = get_int(LOGX_KEY_ROTATE_DAILY_INTERVAL);
+    ival                       = get_int(root, LOGX_KEY_ROTATE_DAILY_INTERVAL);
     cfg->rotate.daily_interval = (ival > 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
 
     cJSON_Delete(root);
+
+#undef get_str
+#undef get_int
+#undef get_bool
+
     return 0;
 }
 
@@ -461,6 +470,8 @@ int parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                         cfg->console_level = LOG_LEVEL_WARN;
                     else if (strcasecmp(val, "ERROR") == 0)
                         cfg->console_level = LOG_LEVEL_ERROR;
+                    else if (strcasecmp(val, "FATAL") == 0)
+                        cfg->file_level = LOG_LEVEL_FATAL;
                     else
                     {
                         fprintf(stderr, "[LogX] Invalid console_level '%s' → Using default.\n",
@@ -480,6 +491,8 @@ int parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                         cfg->file_level = LOG_LEVEL_WARN;
                     else if (strcasecmp(val, "ERROR") == 0)
                         cfg->file_level = LOG_LEVEL_ERROR;
+                    else if (strcasecmp(val, "FATAL") == 0)
+                        cfg->file_level = LOG_LEVEL_FATAL;
                     else
                     {
                         fprintf(stderr, "[LogX] Invalid file_level '%s' → Using default.\n", val);
@@ -562,8 +575,6 @@ int parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
         cfg->rotate.max_backups = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
     if (!cfg->rotate.daily_interval)
         cfg->rotate.daily_interval = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
-
-    fprintf(stderr, "[LogX] YAML config parsed successfully.\n");
     return 0;
 }
 
@@ -624,6 +635,9 @@ static int load_cfg_from_file(logx_cfg_t *cfg)
     /* Try the explicitly defined config path first */
     if (access(LOGX_CFG_FILEPATH, F_OK) == 0)
     {
+        printf("[LogX] Found logger configuration file: %s. Trying to parse and set configuration "
+               "...\n",
+               LOGX_CFG_FILEPATH);
         return parse_config_file(LOGX_CFG_FILEPATH, cfg);
     }
 #endif
@@ -631,19 +645,35 @@ static int load_cfg_from_file(logx_cfg_t *cfg)
     /* Try default filenames if no explicit path is set or accessible */
 #ifdef LOGX_DEFAULT_CFG_YML_FILEPATH
     if (access(LOGX_DEFAULT_CFG_YML_FILEPATH, F_OK) == 0)
+    {
+        printf("[LogX] Found logger configuration file: %s. Trying to parse and set configuration "
+               "...\n",
+               LOGX_DEFAULT_CFG_YML_FILEPATH);
         return parse_config_file(LOGX_DEFAULT_CFG_YML_FILEPATH, cfg);
+    }
 #endif
 
 #ifdef LOGX_DEFAULT_CFG_YAML_FILEPATH
     if (access(LOGX_DEFAULT_CFG_YAML_FILEPATH, F_OK) == 0)
+    {
+        printf("[LogX] Found logger configuration file: %s. Trying to parse and set configuration "
+               "...\n",
+               LOGX_DEFAULT_CFG_YAML_FILEPATH);
         return parse_config_file(LOGX_DEFAULT_CFG_YAML_FILEPATH, cfg);
+    }
 #endif
 
 #ifdef LOGX_DEFAULT_CFG_JSON_FILEPATH
     if (access(LOGX_DEFAULT_CFG_JSON_FILEPATH, F_OK) == 0)
+    {
+        printf("[LogX] Found logger configuration file: %s. Trying to parse and set configuration "
+               "...\n",
+               LOGX_DEFAULT_CFG_JSON_FILEPATH);
         return parse_config_file(LOGX_DEFAULT_CFG_JSON_FILEPATH, cfg);
+    }
 #endif
 
+    printf("[LogX] Couldn't find any logx configuration files\n");
     return -1;
 }
 
@@ -686,8 +716,10 @@ logx_t *logx_create(const logx_cfg_t *cfg)
     }
     else
     {
-        if (!load_cfg_from_file(&internal_cfg))
+        printf("[LogX] No configuration provided. Trying to load configuration from file...\n");
+        if (load_cfg_from_file(&internal_cfg) < 0)
         {
+            printf("[LogX] Setting default configuration...\n");
             set_default_cfg(&internal_cfg);
         }
     }
@@ -897,6 +929,7 @@ void logx_log(logx_t *logger, log_level_t level, const char *file, const char *f
     {
         switch (level)
         {
+        case LOG_LEVEL_TRACE: c = COLOR_TRACE; break;
         case LOG_LEVEL_DEBUG: c = COLOR_DEBUG; break;
         case LOG_LEVEL_INFO: c = COLOR_INFO; break;
         case LOG_LEVEL_WARN: c = COLOR_WARN; break;

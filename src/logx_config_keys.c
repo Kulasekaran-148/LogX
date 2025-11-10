@@ -1,4 +1,4 @@
-#include "logx_config_keys.h"
+#include "../include/logx/logx_config_keys.h"
 
 #include <cjson/cJSON.h>
 #include <stdio.h>
@@ -18,12 +18,6 @@ const char *LOGX_KEY_ROTATE_TYPE           = "rotate_type";
 const char *LOGX_KEY_ROTATE_MAX_MBYTES     = "rotate_max_Mbytes";
 const char *LOGX_KEY_ROTATE_MAX_BACKUPS    = "rotate_max_backups";
 const char *LOGX_KEY_ROTATE_DAILY_INTERVAL = "rotate_daily_interval";
-
-typedef struct
-{
-    const char *key;
-    const char *description;
-} logx_config_key_entry_t;
 
 /* Array of known keys for validation and debugging */
 const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {

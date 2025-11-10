@@ -1,0 +1,15 @@
+{
+  "name": "App Logger",
+  "file_path": "./logs/app.log",
+  "enable_console_logging": true,
+  "enable_file_logging": true,
+  "enabled_colored_logs": true,
+  "use_tty_detection": true,
+  "console_level": "DEBUG",
+  "file_level": "DEBUG",
+  "rotate_type": "BY_SIZE",
+  "rotate_max_Mbytes": 10,
+  "rotate_max_backups": 3,
+  "rotate_daily_interval": 1,
+  "banner_pattern": "=-"
+}
