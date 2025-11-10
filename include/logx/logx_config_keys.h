@@ -12,6 +12,7 @@
 #ifndef LOGX_CONFIG_KEYS_H
 #define LOGX_CONFIG_KEYS_H
 
+#include <cjson/cJSON.h>
 #include <stdio.h>
 
 #ifdef __cplusplus
@@ -55,6 +56,9 @@ extern "C"
     } logx_config_key_entry_t;
 
     extern const logx_config_key_entry_t LOGX_CONFIG_KEYS[];
+
+    /* Function Declarations */
+    void log_missing_json_keys(cJSON *root);
 
 #ifdef __cplusplus
 }
