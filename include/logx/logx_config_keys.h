@@ -1,3 +1,14 @@
+/**
+ * @file logx_config_keys.h
+ * @author kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief This file defines the keys used in configuration files for logx logger
+ * @version 0.1
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef LOGX_CONFIG_KEYS_H
 #define LOGX_CONFIG_KEYS_H
 

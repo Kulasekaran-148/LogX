@@ -1,3 +1,14 @@
+/**
+ * @file logx_defaults.h
+ * @author kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief This file defines the default logx logger configuration macros
+ * @version 0.1
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef LOGX_DEFAULTS_H
 #define LOGX_DEFAUTLS_H
 

@@ -1,3 +1,14 @@
+/**
+ * @file logx.c
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Core logx source
+ * @version 0.1
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "../include/logx/logx.h"
@@ -49,10 +60,21 @@ static const char *COLOR_BANNER = "\x1b[36m"; /* cyan */
 static const char *COLOR_FATAL  = "\x1b[35m"; /* purple */
 static const char *COLOR_RESET  = "\x1b[0m";
 
+/**
+ * @brief Converts a log level enum to its corresponding short string representation.
+ *
+ * This function maps a log_level_t value to a three-character string used in log messages.
+ * It is typically used in the logging system to display the log level in a compact format.
+ *
+ * @param level The log level to convert.
+ *
+ * @return const char* Short string representing the log level. Never NULL.
+ */
 const char *log_level_to_string(log_level_t level)
 {
     switch (level)
     {
+    case LOG_LEVEL_TRACE: return "TRC";
     case LOG_LEVEL_DEBUG: return "DBG";
     case LOG_LEVEL_INFO: return "INF";
     case LOG_LEVEL_WARN: return "WRN";
@@ -63,7 +85,30 @@ const char *log_level_to_string(log_level_t level)
     }
 }
 
-/* Internal helper to get millisecond timestamp */
+/* Internal helper to get millisecond timestamp */ /**
+                                                    * @brief Generates a timestamp string with
+                                                    * millisecond precision.
+                                                    *
+                                                    * This internal helper function formats a struct
+                                                    * timeval into a human-readable timestamp string
+                                                    * in the format: YYYY-MM-DD HH:MM:SS.mmm If the
+                                                    * provided timeval pointer is NULL, the current
+                                                    * time is used.
+                                                    *
+                                                    * @param out Pointer to the output buffer where
+                                                    * the timestamp string will be written.
+                                                    * @param out_sz Size of the output buffer in
+                                                    * bytes.
+                                                    * @param tv Pointer to a struct timeval
+                                                    * representing the time to format. If NULL, the
+                                                    * current system time is used.
+                                                    *
+                                                    * @note The output buffer must be large enough
+                                                    * to hold the timestamp string (at least 24
+                                                    * bytes to safely store "YYYY-MM-DD
+                                                    * HH:MM:SS.mmm\0"). This function is
+                                                    * thread-safe.
+                                                    */
 static void now_ts(char *out, size_t out_sz, struct timeval *tv)
 {
     if (!tv)
@@ -79,7 +124,15 @@ static void now_ts(char *out, size_t out_sz, struct timeval *tv)
              tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
 }
 
-/* file locking helper - uses flock (advisory). Returns 0 on success */
+/**
+ * @brief Acquire an exclusive advisory lock on a file descriptor using flock().
+ *
+ * @param fd File descriptor to lock.
+ * @return int 0 on success, -1 on failure (invalid fd or flock error).
+ *
+ * @note This uses advisory locking. Other processes must also use flock()
+ *       for the lock to be respected.
+ */
 static int file_lock_ex(int fd)
 {
     if (fd < 0)
@@ -89,6 +142,14 @@ static int file_lock_ex(int fd)
     return 0;
 }
 
+/**
+ * @brief Release a previously acquired advisory lock on a file descriptor.
+ *
+ * @param fd File descriptor to unlock.
+ * @return int 0 on success, -1 on failure (invalid fd or flock error).
+ *
+ * @note Only unlocks descriptors previously locked with flock().
+ */
 static int file_lock_un(int fd)
 {
     if (fd < 0)
@@ -98,7 +159,25 @@ static int file_lock_un(int fd)
     return 0;
 }
 
-/* rotate by renaming files. keeps max_backups; oldest gets removed */
+/**
+ * @brief Rotate log files, maintaining a maximum number of backups.
+ *
+ * This function implements a simple log rotation mechanism by renaming existing
+ * log files with numeric suffixes and truncating the main log file if max_backups <= 0.
+ *
+ * @param path Path to the main log file.
+ * @param max_backups Maximum number of backup files to retain. If <= 0, the main
+ *                    file is simply truncated and no rotation occurs.
+ *
+ * @return int 0 on success, -1 on failure (e.g., invalid path).
+ *
+ * @details
+ * - Existing backup files are renamed: path.1 -> path.2, ..., path.(max_backups-1) ->
+ * path.max_backups.
+ * - The current log file is renamed to path.1.
+ * - The oldest backup (path.max_backups) is deleted if it exists.
+ * - If max_backups <= 0, the current log file is truncated instead of rotated.
+ */
 static int rotate_files(const char *path, int max_backups)
 {
     char oldname[1024];
@@ -203,6 +282,15 @@ static int check_and_rotate_locked(logx_t *l)
     return 0;
 }
 
+/**
+ * @brief Sets the default logx configuration
+ *
+ * @param[in] cfg Pointer to the logx_cfg_t type configuration object to which default configuration
+ * settings will get written to. This object will be used by logx_t type logx logger instance
+ *
+ * @see logx_t
+ * @see logx_cfg_t
+ */
 static void set_default_cfg(logx_cfg_t *cfg)
 {
     if (!cfg)
@@ -219,7 +307,7 @@ static void set_default_cfg(logx_cfg_t *cfg)
     cfg->enabled_colored_logs   = LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
     cfg->use_tty_detection      = LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION;
     cfg->rotate.type            = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
-    cfg->rotate.max_bytes       = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES; // 10 MB
+    cfg->rotate.max_bytes       = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
     cfg->rotate.max_backups     = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
     cfg->rotate.daily_interval  = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
@@ -280,15 +368,7 @@ int parse_json_config(const char *filepath, logx_cfg_t *cfg)
     (cJSON_HasObjectItem(root, key) ? cJSON_IsTrue(cJSON_GetObjectItem(root, key)) : -1)
 
     /* Log missing keys for visibility */
-    for (size_t i = 0; i < LOGX_CONFIG_KEY_COUNT; ++i)
-    {
-        const char *key = LOGX_CONFIG_KEYS[i].key;
-        if (!cJSON_GetObjectItem(root, key))
-        {
-            fprintf(stderr, "[LogX] Missing key: %-25s (%s) → Using default.\n", key,
-                    LOGX_CONFIG_KEYS[i].description);
-        }
-    }
+    log_missing_json_keys(root);
 
     /* Basic fields */
     const char *val;
@@ -705,7 +785,6 @@ static int load_cfg_from_file(logx_cfg_t *cfg)
  * @see logx_cfg_t
  * @see logx_destroy()
  */
-
 logx_t *logx_create(const logx_cfg_t *cfg)
 {
     logx_cfg_t internal_cfg;
@@ -758,6 +837,19 @@ logx_t *logx_create(const logx_cfg_t *cfg)
     return l;
 }
 
+/**
+ * @brief Destroys a LogX logger instance and frees associated resources.
+ *
+ * This function performs the following actions:
+ *   - Flushes and closes the log file (if file logging was enabled).
+ *   - Releases any allocated resources associated with the logger.
+ *   - Destroys the internal mutex used for thread safety.
+ *   - Frees the logger structure itself.
+ *
+ * After calling this function, the logger pointer should not be used.
+ *
+ * @param[in] logger Pointer to the logx_t instance to destroy. If NULL, the function does nothing.
+ */
 void logx_destroy(logx_t *logger)
 {
     if (!logger)
@@ -781,6 +873,13 @@ void logx_destroy(logx_t *logger)
     free(logger);
 }
 
+/**
+ * @brief Changes the console log level
+ *
+ * @param[in] logger Pointer to the logx logger instance whose console logging level is to be
+ * changed
+ * @param[in] level specifies the logging level
+ */
 void logx_set_console_level(logx_t *logger, log_level_t level)
 {
     if (!logger)
@@ -793,6 +892,12 @@ void logx_set_console_level(logx_t *logger, log_level_t level)
     pthread_mutex_unlock(&logger->lock);
 }
 
+/**
+ * @brief Changes file log level for a logger instance
+ *
+ * @param[in] logger Pointer to the logx logger instance whose file logging level is to be changed
+ * @param[in] level specifies the logging level
+ */
 void logx_set_file_level(logx_t *logger, log_level_t level)
 {
     if (!logger)
@@ -805,7 +910,14 @@ void logx_set_file_level(logx_t *logger, log_level_t level)
     pthread_mutex_unlock(&logger->lock);
 }
 
-void logx_enable_console_logging(logx_t *logger, int enable)
+/**
+ * @brief Enables/Disables console logging for a logx logger instance
+ *
+ * @param[in] logger Pointer to the logx logger instance for which the console logging is to be
+ * enabled/disabled
+ * @param[in] enable value to be set
+ */
+void logx_set_console_logging(logx_t *logger, int enable)
 {
     if (!logger)
     {
@@ -817,7 +929,14 @@ void logx_enable_console_logging(logx_t *logger, int enable)
     pthread_mutex_unlock(&logger->lock);
 }
 
-void logx_enable_file_logging(logx_t *logger, int enable)
+/**
+ * @brief Enables/Disables file logging for a logx logger instance
+ *
+ * @param logger Pointer to the logx logger instance for which the file logging is to be
+ * enabled/disabled
+ * @param enable value to be set
+ */
+void logx_set_file_logging(logx_t *logger, int enable)
 {
     if (!logger)
     {
@@ -840,6 +959,12 @@ void logx_enable_file_logging(logx_t *logger, int enable)
     pthread_mutex_unlock(&logger->lock);
 }
 
+/**
+ * @brief Rotates the log file handled by logx logger instance
+ *
+ * @param[in] logger Pointer to the logger instance whose handled file needs to be rotated
+ * @return int 0 on Success, -1 on Failure
+ */
 int logx_rotate_now(logx_t *logger)
 {
     int r = 0;
@@ -884,6 +1009,42 @@ int logx_rotate_now(logx_t *logger)
     pthread_mutex_unlock(&logger->lock);
     return r;
 }
+
+/**
+ * @brief Logs a message to console and/or file.
+ *
+ * This function formats and writes a log message according to the logger configuration.
+ * It supports different log levels, colored console output, file logging with optional
+ * file locking, and a special banner log format. If both console and file logging are
+ * disabled for the given level, the function returns immediately.
+ *
+ * @param logger Pointer to a valid logx_t logger instance. If NULL, the function does nothing.
+ * @param level The log level for this message (e.g., LOG_LEVEL_TRACE, LOG_LEVEL_INFO,
+ * LOG_LEVEL_BANNER).
+ * @param file The source filename from which the log call originates (usually __FILE__).
+ *             If NULL, a "?" placeholder is used.
+ * @param func The function name from which the log call originates (usually __func__).
+ *             If NULL, a "?" placeholder is used.
+ * @param line The line number from which the log call originates (usually __LINE__).
+ * @param fmt printf-style format string for the log message.
+ * @param ... Variable arguments corresponding to the format string.
+ *
+ * @details
+ * - The function acquires the logger mutex to ensure thread safety.
+ * - It checks if the log level meets the thresholds configured for console and file logging.
+ * - If file logging is enabled, it performs a log rotation check before writing.
+ * - Timestamp is generated with microsecond precision using gettimeofday().
+ * - Console output can be colored depending on configuration and TTY detection.
+ * - Banner logs (LOG_LEVEL_BANNER) are surrounded by a customizable border pattern and aligned
+ * nicely.
+ * - Normal logs include a timestamp, log level, source file, function name, and line number prefix.
+ * - File writes honor file locks if a file descriptor is provided.
+ *
+ * @note
+ * - Payloads are truncated if they exceed 4096 bytes.
+ * - Colored output will be disabled if TTY detection is enabled and the output is not a terminal.
+ * - The function is safe to call from multiple threads.
+ */
 
 void logx_log(logx_t *logger, log_level_t level, const char *file, const char *func, int line,
               const char *fmt, ...)

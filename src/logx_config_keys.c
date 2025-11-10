@@ -39,6 +39,13 @@ const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
 /* Expose count for iteration */
 const size_t LOGX_CONFIG_KEY_COUNT = sizeof(LOGX_CONFIG_KEYS) / sizeof(LOGX_CONFIG_KEYS[0]);
 
+/**
+ * @brief Logs any missing json keys in the configuration file
+ *
+ * @param[in] root cJSON type object which is filled with parsed information. If at this point, any
+ * of the information is not present, then it means it must've hit some error while parsing or the
+ * key must be invlaid in the provided configuration file
+ */
 void log_missing_json_keys(cJSON *root)
 {
     for (size_t i = 0; i < LOGX_CONFIG_KEY_COUNT; ++i)

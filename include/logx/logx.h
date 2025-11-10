@@ -1,3 +1,14 @@
+/**
+ * @file logx.h
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Core logx header file
+ * @version 0.1
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef _LOGX_H
 #define _LOGX_H
 
@@ -36,6 +47,7 @@ extern "C"
     } log_rotate_type_t;
 
     /* Rotation configuration */
+    /* When you add new members here, make sure to update the list in logx_config_key.h */
     typedef struct
     {
         log_rotate_type_t type;        /* type of rotation */
@@ -45,6 +57,7 @@ extern "C"
     } log_rotate_cfg_t;
 
     /* Logger configuration passed to create function */
+    /* When you add new members here, make sure to update the list in logx_config_key.h */
     typedef struct
     {
         const char *name;                   /* logical name of logger (used in prefix) */
@@ -83,8 +96,8 @@ extern "C"
     void logx_set_file_level(logx_t *logger, log_level_t level);
 
     /* Toggle outputs */
-    void logx_enable_console_logging(logx_t *logger, int enable);
-    void logx_enable_file_logging(logx_t *logger, int enable);
+    void logx_set_console_logging(logx_t *logger, int enable);
+    void logx_set_file_logging(logx_t *logger, int enable);
 
     /* Force an immediate rotation (useful for admin triggers) */
     int logx_rotate_now(logx_t *logger);
