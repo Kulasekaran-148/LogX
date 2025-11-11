@@ -1,8 +1,0 @@
-/usr/lib/liblogx.so.1.0.0
-/usr/lib/liblogx.so.1
-/usr/lib/liblogx.so
-/usr/include/logx/logx.h
-/usr/include/logx/logx_config_keys.h
-/usr/include/logx/logx_defaults.h
-/usr/include/logx/version.h
-/usr/lib/liblogx_static.a

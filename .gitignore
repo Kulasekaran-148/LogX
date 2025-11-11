@@ -58,9 +58,12 @@ dkms.conf
 *.vscode
 
 # example artifacts
-*./example/binaries
-*./example/logs
+example/binaries
+example/logs
 
 # test artifacts
-*./test/binaries
-*./test/logs
+test/binaries
+test/logs
+
+# build artifacts
+build/

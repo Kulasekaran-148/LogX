@@ -1,2 +1,0 @@
-/usr/bin/ar qc liblogx_static.a CMakeFiles/logx_static.dir/src/logx.c.o CMakeFiles/logx_static.dir/src/logx_config_keys.c.o
-/usr/bin/ranlib liblogx_static.a

@@ -1,9 +1,0 @@
-Architecture: amd64
-Description: LogX - Production-grade Logger Library for C
-Maintainer: Kulasekaran <kulasekaranslrk@gmail.com>
-Package: liblogx
-Priority: optional
-Section: libs
-Version: 1.0.0
-Installed-Size: 168
-

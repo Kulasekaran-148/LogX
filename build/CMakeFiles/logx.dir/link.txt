@@ -1,1 +1,0 @@
-/usr/bin/cc -fPIC -shared -Wl,-soname,liblogx.so.1 -o liblogx.so.1.0.0 CMakeFiles/logx.dir/src/logx.c.o CMakeFiles/logx.dir/src/logx_config_keys.c.o  -lyaml -lcjson 

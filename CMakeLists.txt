@@ -58,6 +58,7 @@ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 
 # --- Debian-specific settings ---
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kulasekaran <kulasekaranslrk@gmail.com>")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libyaml-dev, libcjson-dev")
 set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
