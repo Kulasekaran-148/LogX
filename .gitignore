@@ -66,4 +66,4 @@ test/binaries
 test/logs
 
 # build artifacts
-build/
+build/docs/

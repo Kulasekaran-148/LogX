@@ -1,0 +1,55 @@
+# Doxyfile 1.9.7
+
+# Project info
+PROJECT_NAME           = "Logger Library"
+PROJECT_BRIEF          = "A simple and robust C/C++ logging library"
+PROJECT_LOGO           = 
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = YES
+OUTPUT_LANGUAGE        = English
+FULL_PATH_NAMES        = YES
+
+# Input files
+INPUT                  = ./include ./src
+RECURSIVE              = YES
+EXCLUDE                = ./tests
+
+# Extract all items from code (even if not documented)
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+# File patterns
+FILE_PATTERNS          = *.c *.cpp *.h *.hpp
+
+# Source browsing
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+STRIP_CODE_COMMENTS    = NO
+
+# Generate HTML
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_COLORSTYLE_HUE    = 220
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_TIMESTAMP         = YES
+
+# Generate LaTeX/PDF (optional)
+GENERATE_LATEX         = YES
+
+# Diagram support
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = png
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+CLASS_DIAGRAMS         = YES
+
+# Markdown support
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+
+# Warnings and errors
+WARN_IF_UNDOCUMENTED   = YES
+WARNINGS               = YES

@@ -1,3 +1,14 @@
+/**
+ * @file logx_config_keys.c
+ * @author kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief This file declares the keys used by yaml and json parsers
+ * @version 0.1
+ * @date 2025-11-11
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #include "../include/logx/logx_config_keys.h"
 
 #include <cjson/cJSON.h>
