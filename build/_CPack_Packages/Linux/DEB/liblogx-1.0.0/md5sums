@@ -1,0 +1,6 @@
+5f45a69455e5c2cdb0682cb650be4a42  usr/include/logx/logx.h
+70a2e7fd86ae2da6506af77caa9ccfb7  usr/include/logx/logx_config_keys.h
+9af351f910699df471c43969e4722986  usr/include/logx/logx_defaults.h
+2e8f193b878753aadd90526dbb0621d2  usr/include/logx/version.h
+a3f79de1c3055d97a6f9443672763060  usr/lib/liblogx.so.1.0.0
+53fa12f6d76ab6c501fe906d7468bda2  usr/lib/liblogx_static.a

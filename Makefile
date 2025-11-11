@@ -8,24 +8,27 @@ BUILD_DIR   := build
 SRC_DIR     := src
 INC_DIR     := include
 
+# ---- Version ----
+MAJOR := $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+MINOR := $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+PATCH := $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
+VERSION := $(MAJOR).$(MINOR).$(PATCH)
+
+# ---- Examples ----
 EXAMPLE_DIR := examples
 EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/*.c)
 EXAMPLE_BIN_DIR := examples/binaries
 EXAMPLE_LOG_DIR := examples/logs
 EXAMPLE_BINS := $(patsubst examples/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
 
+# ---- Tests ----
 TEST_DIR    := tests
 TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
 TEST_BIN_DIR := tests/binaries
 TEST_LOG_DIR := tests/logs
 TEST_BINS := $(patsubst tests/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
 
-# Extract version numbers from version.h
-MAJOR := $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-MINOR := $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-PATCH := $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
-VERSION := $(MAJOR).$(MINOR).$(PATCH)
-
+# ---- Target ----
 TARGET			:= logx
 TARGET_STATIC := $(BUILD_DIR)/lib$(TARGET).a
 TARGET_SHARED := $(BUILD_DIR)/lib$(TARGET).so
@@ -103,7 +106,7 @@ test: $(TEST_BIN_DIR) $(TEST_BINS)
 $(TEST_BIN_DIR):
 	mkdir -p $(TEST_BIN_DIR)
 
-$(TEST_BIN_DIR)/%: tests/%.c $(STATIC_LIB) $(SHARED_LIB)
+$(TEST_BIN_DIR)/%: tests/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Examples ----
@@ -115,9 +118,8 @@ $(EXAMPLE_BIN_DIR):
 	mkdir -p $(EXAMPLE_BIN_DIR)
 
 # Pattern rule for building example binaries
-$(EXAMPLE_BIN_DIR)/%: examples/%.c $(STATIC_LIB) $(SHARED_LIB)
+$(EXAMPLE_BIN_DIR)/%: examples/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
-
 
 # ---- Cleanup ----
 clean:
@@ -134,9 +136,7 @@ fresh:
 	@echo "🧼 Clean build started..."
 	@$(MAKE) --no-print-directory clean
 	@$(MAKE) --no-print-directory all
-
-
-
+	
 # ---- Help ----
 help:
 	@echo ""
@@ -159,4 +159,4 @@ help:
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check example test install clean fresh
+.PHONY: all dirs format tidy check example test clean fresh
