@@ -4,9 +4,9 @@
  * @brief This file declares the keys used by yaml and json parsers
  * @version 0.1
  * @date 2025-11-11
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  */
 
 #include "../include/logx/logx_config_keys.h"
@@ -21,6 +21,7 @@ const char *LOGX_KEY_ENABLE_FILE_LOGGING    = "enable_file_logging";
 const char *LOGX_KEY_ENABLED_COLORED_LOGS   = "enabled_colored_logs";
 const char *LOGX_KEY_USE_TTY_DETECTION      = "use_tty_detection";
 const char *LOGX_KEY_BANNER_PATTERN         = "banner_pattern";
+const char *LOGX_KEY_PRINT_CONFIG           = "print_config";
 
 const char *LOGX_KEY_CONSOLE_LEVEL = "console_level";
 const char *LOGX_KEY_FILE_LEVEL    = "file_level";
@@ -45,6 +46,7 @@ const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
     {     "rotate_max_Mbytes",    "Maximum file size before rotation"},
     {    "rotate_max_backups",      "Maximum number of rotated files"},
     { "rotate_daily_interval", "Interval (in days) for date rotation"},
+    {          "print_config",       "Enable or disable config print"},
 };
 
 /* Expose count for iteration */
@@ -64,8 +66,7 @@ void log_missing_json_keys(cJSON *root)
         const char *key = LOGX_CONFIG_KEYS[i].key;
         if (!cJSON_GetObjectItem(root, key))
         {
-            fprintf(stderr, "[LogX] Missing key: %-25s (%s)\n", key,
-                    LOGX_CONFIG_KEYS[i].description);
+            fprintf(stderr, "[LogX] Missing key: %-25s (%s)\n", key, LOGX_CONFIG_KEYS[i].description);
         }
     }
 }

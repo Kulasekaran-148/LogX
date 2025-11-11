@@ -14,6 +14,7 @@ enable_console_logging: true
 enable_file_logging: true
 enabled_colored_logs: true
 use_tty_detection: true
+print_config: 1
 
 # ---- Log Levels ----
 # Options: TRACE | DEBUG | INFO | WARN | ERROR
@@ -29,3 +30,5 @@ rotate_daily_interval: 1
 
 # ---- Appearance ----
 banner_pattern: "=-"
+
+

@@ -38,6 +38,7 @@ extern "C"
     extern const char *LOGX_KEY_ENABLED_COLORED_LOGS;
     extern const char *LOGX_KEY_USE_TTY_DETECTION;
     extern const char *LOGX_KEY_BANNER_PATTERN;
+    extern const char *LOGX_KEY_PRINT_CONFIG;
 
     extern const char *LOGX_KEY_CONSOLE_LEVEL;
     extern const char *LOGX_KEY_FILE_LEVEL;

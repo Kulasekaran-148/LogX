@@ -26,12 +26,13 @@ int main(void)
     cfg.file_path              = "../logs/LogX_Basic_Example.log";
     cfg.enabled_colored_logs   = 1;
     cfg.use_tty_detection      = 1;
-    cfg.console_level          = LOG_LEVEL_TRACE;
-    cfg.file_level             = LOG_LEVEL_TRACE;
-    cfg.rotate.type            = LOG_ROTATE_BY_SIZE;
+    cfg.console_level          = LOGX_LEVEL_TRACE;
+    cfg.file_level             = LOGX_LEVEL_TRACE;
+    cfg.rotate.type            = LOGX_ROTATE_BY_SIZE;
     cfg.rotate.max_bytes       = 1024 * 1024 * 1; /* 1 MB */
     cfg.rotate.max_backups     = 3;
-
+    cfg.print_config           = 1;
+    
     logger = logx_create(&cfg);
     if (!logger)
     {

@@ -11,5 +11,6 @@
   "rotate_max_Mbytes": 10,
   "rotate_max_backups": 3,
   "rotate_daily_interval": 1,
-  "banner_pattern": "=-"
+  "banner_pattern": "=-",
+  "print_config": 1
 }

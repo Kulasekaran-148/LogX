@@ -29,7 +29,7 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-ColumnLimit: 100
+ColumnLimit: 150
 EmptyLineBeforeAccessModifier: Always
 IncludeBlocks: Regroup
 IndentExternBlock: NoIndent
