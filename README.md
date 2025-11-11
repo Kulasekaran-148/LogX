@@ -65,6 +65,39 @@ chmod +x make_package
 sudo apt install ./build/liblogx-1.0.0.deb
 ```
 
+## Generating Doxygen Documentation
+
+This project uses [Doxygen](http://www.doxygen.nl/) to generate API documentation. You can generate the docs locally by following these steps:
+
+1. **Install Doxygen** (and Graphviz for call graphs):
+
+```bash
+# Ubuntu / WSL
+sudo apt-get update
+sudo apt-get install doxygen graphviz
+
+# Optional for Latex documentation
+sudo apt-get install texlive-latex-base texlive-latex-extra
+```
+
+2. **Ensure the Doxyfile exists** in the project root
+
+The default Doxyfile is configured to generate HTML & LATEX documentation inside docs folder
+
+3. **Run Doxygen**
+
+```bash
+doxygen Doxyfile
+```
+
+4. **Open HTML documentation**
+
+Once the doxygen generation is complete, you can open `./docs/html/index.html` using any browser.
+
+5. **(Optional) PDF Generation**
+
+Go to `./docs/latex/` and run make to generate the pdf documentation. It will be generated as `refman.pdf`
+
 ## Quick Start
 
 ```C

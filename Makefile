@@ -34,6 +34,11 @@ TARGET_STATIC := $(BUILD_DIR)/lib$(TARGET).a
 TARGET_SHARED := $(BUILD_DIR)/lib$(TARGET).so
 SONAME      := lib$(TARGET).so.$(VERSION)
 
+# ---- Documentattion ----
+DOXYFILE := Doxyfile
+DOCS_DIR := docs
+LATEX_DIR := $(DOCS_DIR)/latex
+
 LIBS = -llogx -lyaml -lcjson
 
 # ---- Compiler settings ----
@@ -136,7 +141,20 @@ fresh:
 	@echo "🧼 Clean build started..."
 	@$(MAKE) --no-print-directory clean
 	@$(MAKE) --no-print-directory all
-	
+
+# Clean the docs folder
+clean_docs:
+	@echo "🧹 Cleaning existing docs..."
+	@rm -rf $(DOCS_DIR)
+
+# Generate fresh docs
+fresh_docs: clean_docs
+	@echo "📄 Generating HTML and LaTeX docs..."
+	@doxygen $(DOXYFILE)
+	@echo "📚 Building refman.pdf..."
+	@$(MAKE) -C $(LATEX_DIR)  # Run make in the LaTeX folder
+	@echo "✅ Docs generation complete."
+
 # ---- Help ----
 help:
 	@echo ""
@@ -152,6 +170,8 @@ help:
 	@echo "  make tidy                     - Run clang-tidy static analysis"
 	@echo "  make example									 - Build examples"
 	@echo "  make test                     - Build tests"
+	@echo "  make clean_docs               - Clean the doxygen docs folder"
+	@echo "  make fresh_docs               - Clean and build the doxygen docs folder"
 	@echo "  make help                     - Show this help message"
 	@echo ""
 	@echo "------------------------------------------------------------"
@@ -159,4 +179,4 @@ help:
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check example test clean fresh
+.PHONY: all dirs format tidy check example test clean fresh fresh_docs clean_docs
