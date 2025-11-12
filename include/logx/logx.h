@@ -112,6 +112,12 @@ const char *logx_level_to_string(logx_level_t level);
 /* Helper: convert rotate type to string */
 const char *logx_rotate_type_to_string(logx_rotate_type_t type);
 
+/* Helper: validates whether level is a valid logx_level_t value */
+int is_valid_logx_level(logx_level_t level);
+
+/* Helper: validates whether type is a valid logx_rotate_type_t value */
+int is_valid_logx_rotate_type(logx_rotate_type_t type);
+
 /* Macros for easy logging (these expand to a call that includes file/func/line) */
 #define LOGX_TRACE(logger, fmt, ...)  logx_log((logger), LOGX_LEVEL_TRACE, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)
 #define LOGX_DEBUG(logger, fmt, ...)  logx_log((logger), LOGX_LEVEL_DEBUG, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)

@@ -19,7 +19,7 @@
 
 ## Introduction
 
-**LogX** is a Sophisticated, flexible, user-friendly and robust C logging library designed for Linux based systems with high customizability.
+**LogX** is a Sophisticated, flexible, user-friendly and robust logging library in C, designed for Linux based systems with high customizability.
 
 ---
 

@@ -130,9 +130,13 @@ $(EXAMPLE_BIN_DIR)/%: examples/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 clean:
 	@echo "🧹 Cleaning build..."
 	@rm -rf $(BUILD_DIR)
+	@echo "🧹 Cleaning example binaries..."
 	@rm -rf $(EXAMPLE_BIN_DIR)
+	@echo "🧹 Cleaning example log files..."
 	@rm -rf $(EXAMPLE_LOG_DIR)
+	@echo "🧹 Cleaning test binaries..."
 	@rm -rf $(TEST_BIN_DIR)
+	@echo "🧹 Cleaning test log files..."
 	@rm -rf $(TEST_LOG_DIR)
 	@echo "✅ Clean complete."
 

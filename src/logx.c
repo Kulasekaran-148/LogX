@@ -61,6 +61,47 @@ static const char *COLOR_FATAL  = "\x1b[35m"; /* purple */
 static const char *COLOR_RESET  = "\x1b[0m";
 
 /**
+ * @brief Validates if the logx_rotate_type_t passed is valid or not
+ *
+ * @param[in] type rotate type to be validated
+ * @return int 0 on Success, -1 on Failure
+ */
+int is_valid_logx_rotate_type(logx_rotate_type_t type)
+{
+    switch (type)
+    {
+    case LOGX_ROTATE_NONE:
+    case LOGX_ROTATE_BY_SIZE:
+    case LOGX_ROTATE_BY_DATE: return 0;
+    default: return -1;
+    }
+    return -1;
+}
+
+/**
+ * @brief Validates if the logx_level_t passed is valid or not
+ *
+ * @param[in] level logx level to be validated
+ * @return int 0 on Success, -1 on Failure
+ */
+int is_valid_logx_level(logx_level_t level)
+{
+    switch (level)
+    {
+    case LOGX_LEVEL_TRACE:
+    case LOGX_LEVEL_DEBUG:
+    case LOGX_LEVEL_BANNER:
+    case LOGX_LEVEL_INFO:
+    case LOGX_LEVEL_WARN:
+    case LOGX_LEVEL_ERROR:
+    case LOGX_LEVEL_FATAL:
+    case LOGX_LEVEL_OFF: return 0;
+    default: return -1;
+    }
+    return -1;
+}
+
+/**
  * @brief Converts a log level enum to its corresponding short string representation.
  *
  * This function maps a logx_level_t value to a three-character string used in log messages.
@@ -155,7 +196,8 @@ static void now_ts(char *out, size_t out_sz, struct timeval *tv)
     struct tm tm;
     localtime_r(&tv->tv_sec, &tm);
     int ms = (int)(tv->tv_usec / 1000);
-    snprintf(out, out_sz, "%04d-%02d-%02d %02d:%02d:%02d.%03d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+    snprintf(out, out_sz, "%04d-%02d-%02d %02d:%02d:%02d.%03d", tm.tm_year + 1900, tm.tm_mon + 1,
+             tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
 }
 
 /**
@@ -266,7 +308,8 @@ static int check_and_rotate_locked(logx_t *l)
         struct tm tm;
         localtime_r(&t, &tm);
         char today[16];
-        snprintf(today, sizeof(today), "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+        snprintf(today, sizeof(today), "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
+                 tm.tm_mday);
         if (strcmp(today, l->current_date) != 0)
         {
             /* rotate */
@@ -344,6 +387,7 @@ static void logx_set_default_cfg(logx_cfg_t *cfg)
     cfg->rotate.max_backups     = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
     cfg->rotate.daily_interval  = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
+    cfg->print_config           = LOGX_DEFAULT_CFG_PRINT_CONFIG;
 }
 
 /**
@@ -391,11 +435,14 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg)
     }
 
 /* Define helper macros */
-#define get_str(root, key) (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valuestring : NULL)
+#define get_str(root, key) \
+    (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valuestring : NULL)
 
-#define get_int(root, key) (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valueint : -1)
+#define get_int(root, key) \
+    (cJSON_GetObjectItem(root, key) ? cJSON_GetObjectItem(root, key)->valueint : -1)
 
-#define get_bool(root, key) (cJSON_HasObjectItem(root, key) ? cJSON_IsTrue(cJSON_GetObjectItem(root, key)) : -1)
+#define get_bool(root, key) \
+    (cJSON_HasObjectItem(root, key) ? cJSON_IsTrue(cJSON_GetObjectItem(root, key)) : -1)
 
     /* Log missing keys for visibility */
     log_missing_json_keys(root);
@@ -490,8 +537,9 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg)
         cfg->rotate.type = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     }
 
-    ival                  = get_int(root, LOGX_KEY_ROTATE_MAX_MBYTES);
-    cfg->rotate.max_bytes = (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
+    ival = get_int(root, LOGX_KEY_ROTATE_MAX_MBYTES);
+    cfg->rotate.max_bytes =
+        (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
 
     ival                    = get_int(root, LOGX_KEY_ROTATE_MAX_BACKUPS);
     cfg->rotate.max_backups = (ival >= 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
@@ -586,7 +634,8 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                         cfg->file_level = LOGX_LEVEL_FATAL;
                     else
                     {
-                        fprintf(stderr, "[LogX] Invalid console_level '%s' → Using default.\n", val);
+                        fprintf(stderr, "[LogX] Invalid console_level '%s' → Using default.\n",
+                                val);
                         cfg->console_level = LOGX_DEFAULT_CFG_CONSOLE_LEVEL;
                     }
                 }
@@ -611,13 +660,17 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                     }
                 }
                 else if (strcmp(key, LOGX_KEY_ENABLE_CONSOLE_LOGGING) == 0)
-                    cfg->enable_console_logging = (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
+                    cfg->enable_console_logging =
+                        (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_ENABLE_FILE_LOGGING) == 0)
-                    cfg->enable_file_logging = (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
+                    cfg->enable_file_logging =
+                        (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_ENABLED_COLORED_LOGS) == 0)
-                    cfg->enabled_colored_logs = (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
+                    cfg->enabled_colored_logs =
+                        (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_USE_TTY_DETECTION) == 0)
-                    cfg->use_tty_detection = (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
+                    cfg->use_tty_detection =
+                        (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_ROTATE_TYPE) == 0)
                 {
                     if (strcasecmp(val, "BY_SIZE") == 0)
@@ -637,19 +690,22 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                         cfg->rotate.max_bytes = (size_t)mbytes * 1024 * 1024;
                     else
                     {
-                        fprintf(stderr, "[LogX] Invalid rotate_max_Mbytes '%s' → Using default.\n", val);
+                        fprintf(stderr, "[LogX] Invalid rotate_max_Mbytes '%s' → Using default.\n",
+                                val);
                         cfg->rotate.max_bytes = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
                     }
                 }
                 else if (strcmp(key, LOGX_KEY_ROTATE_MAX_BACKUPS) == 0)
                 {
-                    int backups             = atoi(val);
-                    cfg->rotate.max_backups = backups > 0 ? backups : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
+                    int backups = atoi(val);
+                    cfg->rotate.max_backups =
+                        backups > 0 ? backups : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
                 }
                 else if (strcmp(key, LOGX_KEY_ROTATE_DAILY_INTERVAL) == 0)
                 {
-                    int interval               = atoi(val);
-                    cfg->rotate.daily_interval = interval > 0 ? interval : LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
+                    int interval = atoi(val);
+                    cfg->rotate.daily_interval =
+                        interval > 0 ? interval : LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
                 }
                 else if (strcmp(key, LOGX_KEY_BANNER_PATTERN) == 0)
                     cfg->banner_pattern = strdup(val);
@@ -783,6 +839,11 @@ static int logx_load_cfg_from_file(logx_cfg_t *cfg)
     return -1;
 }
 
+/**
+ * @brief Prints out currently configured logger configuration
+ *
+ * @param[in] l Pointer to the LogX logger instance whose configuration is to be printed out.
+ */
 static void logx_print_config(logx_t *l)
 {
     if (!l)
@@ -792,15 +853,18 @@ static void logx_print_config(logx_t *l)
     fprintf(stderr, "[LogX] Logger configuration details\n");
     fprintf(stderr, "[LogX] Name                  : %s\n", l->cfg.name);
     fprintf(stderr, "[LogX] File Path             : %s\n", l->cfg.file_path);
-    fprintf(stderr, "[LogX] Console Log Level     : %s\n", logx_level_to_string(l->cfg.console_level));
+    fprintf(stderr, "[LogX] Console Log Level     : %s\n",
+            logx_level_to_string(l->cfg.console_level));
     fprintf(stderr, "[LogX] File Log Level        : %s\n", logx_level_to_string(l->cfg.file_level));
-    fprintf(stderr, "[LogX] Console Logging       : %s\n", logx_check(l->cfg.enable_console_logging));
-    fprintf(stderr, "[LogX] File Logging          : %s\n",
-            logx_check(l->cfg.enable_file_logging));
+    fprintf(stderr, "[LogX] Console Logging       : %s\n",
+            logx_check(l->cfg.enable_console_logging));
+    fprintf(stderr, "[LogX] File Logging          : %s\n", logx_check(l->cfg.enable_file_logging));
     fprintf(stderr, "[LogX] Colored Logs          : %s\n", logx_check(l->cfg.enabled_colored_logs));
     fprintf(stderr, "[LogX] TTY Detection         : %s\n", logx_check(l->cfg.use_tty_detection));
-    fprintf(stderr, "[LogX] Log Rotate Type       : %s\n", logx_rotate_type_to_string(l->cfg.rotate.type));
-    fprintf(stderr, "[LogX] Max Log Size          : %ld MB\n", l->cfg.rotate.max_bytes / (1024 * 1024));
+    fprintf(stderr, "[LogX] Log Rotate Type       : %s\n",
+            logx_rotate_type_to_string(l->cfg.rotate.type));
+    fprintf(stderr, "[LogX] Max Log Size          : %ld MB\n",
+            l->cfg.rotate.max_bytes / (1024 * 1024));
     fprintf(stderr, "[LogX] Max Backups           : %d\n", l->cfg.rotate.max_backups);
     fprintf(stderr, "[LogX] Rotation Interval (Days) : %d\n", l->cfg.rotate.daily_interval);
     fprintf(stderr, "[LogX] Print Config          : %s\n", logx_check(l->cfg.print_config));
@@ -845,7 +909,8 @@ logx_t *logx_create(const logx_cfg_t *cfg)
     }
     else
     {
-        fprintf(stderr, "[LogX] No configuration provided. Trying to load configuration from file...\n");
+        fprintf(stderr,
+                "[LogX] No configuration provided. Trying to load configuration from file...\n");
         if (logx_load_cfg_from_file(&internal_cfg) < 0)
         {
             fprintf(stderr, "[LogX] Setting default configuration...\n");
@@ -879,7 +944,8 @@ logx_t *logx_create(const logx_cfg_t *cfg)
             time_t    t = time(NULL);
             struct tm tm;
             localtime_r(&t, &tm);
-            snprintf(l->current_date, sizeof(l->current_date), "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+            snprintf(l->current_date, sizeof(l->current_date), "%04d-%02d-%02d", tm.tm_year + 1900,
+                     tm.tm_mon + 1, tm.tm_mday);
         }
     }
 
@@ -928,143 +994,6 @@ void logx_destroy(logx_t *logger)
 }
 
 /**
- * @brief Changes the console log level
- *
- * @param[in] logger Pointer to the logx logger instance whose console logging level is to be
- * changed
- * @param[in] level specifies the logging level
- */
-void logx_set_console_level(logx_t *logger, logx_level_t level)
-{
-    if (!logger)
-    {
-        return;
-    }
-
-    pthread_mutex_lock(&logger->lock);
-    logger->cfg.console_level = level;
-    pthread_mutex_unlock(&logger->lock);
-}
-
-/**
- * @brief Changes file log level for a logger instance
- *
- * @param[in] logger Pointer to the logx logger instance whose file logging level is to be changed
- * @param[in] level specifies the logging level
- */
-void logx_set_file_level(logx_t *logger, logx_level_t level)
-{
-    if (!logger)
-    {
-        return;
-    }
-
-    pthread_mutex_lock(&logger->lock);
-    logger->cfg.file_level = level;
-    pthread_mutex_unlock(&logger->lock);
-}
-
-/**
- * @brief Enables/Disables console logging for a logx logger instance
- *
- * @param[in] logger Pointer to the logx logger instance for which the console logging is to be
- * enabled/disabled
- * @param[in] enable value to be set
- */
-void logx_set_console_logging(logx_t *logger, int enable)
-{
-    if (!logger)
-    {
-        return;
-    }
-
-    pthread_mutex_lock(&logger->lock);
-    logger->cfg.enable_console_logging = enable ? 1 : 0;
-    pthread_mutex_unlock(&logger->lock);
-}
-
-/**
- * @brief Enables/Disables file logging for a logx logger instance
- *
- * @param logger Pointer to the logx logger instance for which the file logging is to be
- * enabled/disabled
- * @param enable value to be set
- */
-void logx_set_file_logging(logx_t *logger, int enable)
-{
-    if (!logger)
-    {
-        return;
-    }
-
-    pthread_mutex_lock(&logger->lock);
-    if (enable && !logger->cfg.file_path)
-    {
-        /* cannot enable without path */
-        /* must not use Logger to log the below message since we're already inside the logger */
-        fprintf(stderr, "ERROR: cannot enable file logging without "
-                        "valid file path\n");
-        logger->cfg.enable_file_logging = 0;
-    }
-    else
-    {
-        logger->cfg.enable_file_logging = enable ? 1 : 0;
-    }
-    pthread_mutex_unlock(&logger->lock);
-}
-
-/**
- * @brief Rotates the log file handled by logx logger instance
- *
- * @param[in] logger Pointer to the logger instance whose handled file needs to be rotated
- * @return int 0 on Success, -1 on Failure
- */
-int logx_rotate_now(logx_t *logger)
-{
-    int r = 0;
-
-    if (!logger)
-    {
-        return -1;
-    }
-
-    pthread_mutex_lock(&logger->lock);
-    if (logger->cfg.enable_file_logging && logger->cfg.file_path)
-    {
-        if (logger->fd >= 0)
-        {
-            file_lock_ex(logger->fd);
-        }
-
-        if (logger->fp)
-        {
-            fflush(logger->fp);
-        }
-
-        r = rotate_files(logger->cfg.file_path, logger->cfg.rotate.max_backups);
-
-        if (logger->fp)
-        {
-            fclose(logger->fp);
-        }
-
-        logger->fp = fopen(logger->cfg.file_path, "a");
-
-        if (logger->fp)
-        {
-            logger->fd = fileno(logger->fp);
-        }
-
-        if (logger->fd >= 0)
-        {
-            file_lock_un(logger->fd);
-        }
-    }
-    pthread_mutex_unlock(&logger->lock);
-    return r;
-}
-
-/**
  * @brief Logs a message to console and/or file.
  *
  * This function formats and writes a log message according to the logger configuration.
@@ -1100,7 +1029,8 @@ int logx_rotate_now(logx_t *logger)
  * - The function is safe to call from multiple threads.
  */
 
-void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line, const char *fmt, ...)
+void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
+              const char *fmt, ...)
 {
     if (!logger)
         return;
@@ -1112,7 +1042,8 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
 
     /* Check thresholds */
     int write_console = logger->cfg.enable_console_logging && level >= logger->cfg.console_level;
-    int write_file    = logger->cfg.enable_file_logging && level >= logger->cfg.file_level && logger->fp;
+    int write_file =
+        logger->cfg.enable_file_logging && level >= logger->cfg.file_level && logger->fp;
 
     if (!write_console && !write_file)
     {
@@ -1155,7 +1086,9 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     /* If it's a banner log, build the banner */
     if (level == LOGX_LEVEL_BANNER)
     {
-        const char *pattern = (logger->cfg.banner_pattern && *logger->cfg.banner_pattern) ? logger->cfg.banner_pattern : "=";
+        const char *pattern = (logger->cfg.banner_pattern && *logger->cfg.banner_pattern)
+                                  ? logger->cfg.banner_pattern
+                                  : "=";
 
         size_t msg_len     = strlen(payload);
         size_t pattern_len = strlen(pattern);
@@ -1173,7 +1106,8 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
         border[padded_len] = '\0';
     }
 
-    snprintf(linebuf, sizeof(linebuf), "[%s] [%s] (%s:%s:%d): ", ts, logx_level_to_string(level), file ? file : "?", func ? func : "?", line);
+    snprintf(linebuf, sizeof(linebuf), "[%s] [%s] (%s:%s:%d): ", ts, logx_level_to_string(level),
+             file ? file : "?", func ? func : "?", line);
 
     int gap_len = strlen(linebuf);
 
