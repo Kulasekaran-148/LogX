@@ -209,7 +209,7 @@ static void now_ts(char *out, size_t out_sz, struct timeval *tv)
  * @note This uses advisory locking. Other processes must also use flock()
  *       for the lock to be respected.
  */
-static int file_lock_ex(int fd)
+int file_lock_ex(int fd)
 {
     if (fd < 0)
         return -1;
@@ -226,7 +226,7 @@ static int file_lock_ex(int fd)
  *
  * @note Only unlocks descriptors previously locked with flock().
  */
-static int file_lock_un(int fd)
+int file_lock_un(int fd)
 {
     if (fd < 0)
         return -1;
@@ -254,7 +254,7 @@ static int file_lock_un(int fd)
  * - The oldest backup (path.max_backups) is deleted if it exists.
  * - If max_backups <= 0, the current log file is truncated instead of rotated.
  */
-static int rotate_files(const char *path, int max_backups)
+int rotate_files(const char *path, int max_backups)
 {
     char oldname[1024];
     char newname[1024];

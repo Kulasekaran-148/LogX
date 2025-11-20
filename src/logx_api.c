@@ -1,4 +1,8 @@
+#define _GNU_SOURCE
+
 #include "../include/logx/logx.h"
+
+#include <stdio.h>
 
 /**
  * @brief Changes the console log level
@@ -153,7 +157,7 @@ void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type)
     }
 
     pthread_mutex_lock(&logger->lock);
-    logger->cfg.use_tty_detection = enable ? 1 : 0;
+    logger->cfg.rotate.type = type;
     pthread_mutex_unlock(&logger->lock);
 }
 

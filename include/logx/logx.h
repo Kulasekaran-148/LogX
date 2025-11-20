@@ -118,6 +118,17 @@ int is_valid_logx_level(logx_level_t level);
 /* Helper: validates whether type is a valid logx_rotate_type_t value */
 int is_valid_logx_rotate_type(logx_rotate_type_t type);
 
+/* Locks the fd using flock */
+int file_lock_ex(int fd);
+
+/* Unlocks the fd */
+int file_lock_un(int fd);
+
+/* Rotates log files */
+int rotate_files(const char *path, int max_backups);
+
+
+
 /* Macros for easy logging (these expand to a call that includes file/func/line) */
 #define LOGX_TRACE(logger, fmt, ...)  logx_log((logger), LOGX_LEVEL_TRACE, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)
 #define LOGX_DEBUG(logger, fmt, ...)  logx_log((logger), LOGX_LEVEL_DEBUG, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)
