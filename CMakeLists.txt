@@ -5,45 +5,39 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# --- Auto-collect .c and .h files ---
+file(GLOB LOGX_SOURCES "${PROJECT_SOURCE_DIR}/src/*.c")
+file(GLOB LOGX_PUBLIC_HEADERS "${PROJECT_SOURCE_DIR}/include/logx/*.h")
+
 # --- Shared library ---
-add_library(logx SHARED
-    src/logx.c
-    src/logx_config_keys.c
-)
+add_library(logx SHARED ${LOGX_SOURCES})
 
 # --- Static library ---
-add_library(logx_static STATIC
-    src/logx.c
-    src/logx_config_keys.c
-)
+add_library(logx_static STATIC ${LOGX_SOURCES})
 
-# Include dirs
+# Includes
 target_include_directories(logx PUBLIC include)
 target_include_directories(logx_static PUBLIC include)
 
-# Link dependencies
+# Dependencies
 target_link_libraries(logx PRIVATE yaml cjson)
-# Static version usually doesn't link runtime deps; add if needed:
 target_link_libraries(logx_static PRIVATE yaml cjson)
 
-# Properties for shared library
+# --- Properties for shared library ---
 set_target_properties(logx PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PUBLIC_HEADER
-        "include/logx/logx.h;include/logx/logx_config_keys.h;include/logx/logx_defaults.h;include/logx/version.h"
+    PUBLIC_HEADER "${LOGX_PUBLIC_HEADERS}"
 )
 
-# --- Installation paths ---
+# --- Install paths ---
 include(GNUInstallDirs)
 
-# Shared library install
 install(TARGETS logx
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/logx
 )
 
-# Static library install
 install(TARGETS logx_static
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/logx
