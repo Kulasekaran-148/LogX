@@ -851,23 +851,27 @@ static void logx_print_config(logx_t *l)
 
     fprintf(stderr, "[LogX] ==========================================\n");
     fprintf(stderr, "[LogX] Logger configuration details\n");
-    fprintf(stderr, "[LogX] Name                  : %s\n", l->cfg.name);
-    fprintf(stderr, "[LogX] File Path             : %s\n", l->cfg.file_path);
-    fprintf(stderr, "[LogX] Console Log Level     : %s\n",
+    fprintf(stderr, "[LogX] Name                        : %s\n", l->cfg.name);
+    fprintf(stderr, "[LogX] File Path                   : %s\n", l->cfg.file_path);
+    fprintf(stderr, "[LogX] Console Log Level           : %s\n",
             logx_level_to_string(l->cfg.console_level));
-    fprintf(stderr, "[LogX] File Log Level        : %s\n", logx_level_to_string(l->cfg.file_level));
-    fprintf(stderr, "[LogX] Console Logging       : %s\n",
+    fprintf(stderr, "[LogX] File Log Level              : %s\n",
+            logx_level_to_string(l->cfg.file_level));
+    fprintf(stderr, "[LogX] Console Logging             : %s\n",
             logx_check(l->cfg.enable_console_logging));
-    fprintf(stderr, "[LogX] File Logging          : %s\n", logx_check(l->cfg.enable_file_logging));
-    fprintf(stderr, "[LogX] Colored Logs          : %s\n", logx_check(l->cfg.enabled_colored_logs));
-    fprintf(stderr, "[LogX] TTY Detection         : %s\n", logx_check(l->cfg.use_tty_detection));
-    fprintf(stderr, "[LogX] Log Rotate Type       : %s\n",
+    fprintf(stderr, "[LogX] File Logging                : %s\n",
+            logx_check(l->cfg.enable_file_logging));
+    fprintf(stderr, "[LogX] Colored Logs                : %s\n",
+            logx_check(l->cfg.enabled_colored_logs));
+    fprintf(stderr, "[LogX] TTY Detection               : %s\n",
+            logx_check(l->cfg.use_tty_detection));
+    fprintf(stderr, "[LogX] Log Rotate Type             : %s\n",
             logx_rotate_type_to_string(l->cfg.rotate.type));
-    fprintf(stderr, "[LogX] Max Log Size          : %ld MB\n",
+    fprintf(stderr, "[LogX] Max Log Size                : %ld MB\n",
             l->cfg.rotate.max_bytes / (1024 * 1024));
-    fprintf(stderr, "[LogX] Max Backups           : %d\n", l->cfg.rotate.max_backups);
-    fprintf(stderr, "[LogX] Rotation Interval (Days) : %d\n", l->cfg.rotate.daily_interval);
-    fprintf(stderr, "[LogX] Print Config          : %s\n", logx_check(l->cfg.print_config));
+    fprintf(stderr, "[LogX] Max Backups                 : %d\n", l->cfg.rotate.max_backups);
+    fprintf(stderr, "[LogX] Rotation Interval (Days)    : %d\n", l->cfg.rotate.daily_interval);
+    fprintf(stderr, "[LogX] Print Config                : %s\n", logx_check(l->cfg.print_config));
     fprintf(stderr, "[LogX] ==========================================\n");
 }
 

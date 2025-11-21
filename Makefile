@@ -16,17 +16,17 @@ VERSION := $(MAJOR).$(MINOR).$(PATCH)
 
 # ---- Examples ----
 EXAMPLE_DIR := examples
-EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/*.c)
-EXAMPLE_BIN_DIR := examples/binaries
-EXAMPLE_LOG_DIR := examples/logs
-EXAMPLE_BINS := $(patsubst examples/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
+EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/src/*.c)
+EXAMPLE_BIN_DIR := $(EXAMPLE_DIR)/binaries
+EXAMPLE_LOG_DIR := $(EXAMPLE_DIR)/logs
+EXAMPLE_BINS := $(patsubst $(EXAMPLE_DIR)/src/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
 
 # ---- Tests ----
 TEST_DIR    := tests
-TEST_SRC := $(wildcard $(TEST_DIR)/*.c)
-TEST_BIN_DIR := tests/binaries
-TEST_LOG_DIR := tests/logs
-TEST_BINS := $(patsubst tests/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
+TEST_SRC := $(wildcard $(TEST_DIR)/src/*.c)
+TEST_BIN_DIR := $(TEST_DIR)/binaries
+TEST_LOG_DIR := $(TEST_DIR)/logs
+TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
 
 # ---- Target ----
 TARGET			:= logx
@@ -111,7 +111,7 @@ test: $(TEST_BIN_DIR) $(TEST_BINS)
 $(TEST_BIN_DIR):
 	mkdir -p $(TEST_BIN_DIR)
 
-$(TEST_BIN_DIR)/%: tests/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+$(TEST_BIN_DIR)/%: $(TEST_DIR)/src/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Examples ----
@@ -123,7 +123,7 @@ $(EXAMPLE_BIN_DIR):
 	mkdir -p $(EXAMPLE_BIN_DIR)
 
 # Pattern rule for building example binaries
-$(EXAMPLE_BIN_DIR)/%: examples/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+$(EXAMPLE_BIN_DIR)/%: $(EXAMPLE_DIR)/src/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Cleanup ----

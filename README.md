@@ -50,8 +50,12 @@
 
 ## Dependencies
 
-- CMake >= 3.15
+- CMake
 - libyaml-dev, libcjson-dev (Used by parsing configuration from file)
+
+```bash
+sudo apt install cmake libyaml-dev libcjson-dev -y
+```
 
 ## Installation
 
@@ -60,8 +64,8 @@
 ```bash
 git clone https://github.com/Kulasekaran-148/LogX.git
 cd LogX
-chmod +x make_package
-./make_package
+chmod +x make_package.sh
+./make_package.sh
 sudo apt install ./build/liblogx-1.0.0.deb
 ```
 
