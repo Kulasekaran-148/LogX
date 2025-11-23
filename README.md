@@ -37,12 +37,12 @@
   - Log rotation
     - Based on Size / Date
     - Set number of backups
+- Stopwatch timing
 - Thread-safe implementation
-- Configurable log format
 - Lightweight and minimal dependencies
+- Configurable log format (coming soon...)
 - Asynchronous logging support (coming soon...)
 - Log tags (coming soon...)
-- Stopwatch timing (cominng soon...)
 - Privacy filtering (coming soon...)
 - Logging mode switch (coming soon...)
 
