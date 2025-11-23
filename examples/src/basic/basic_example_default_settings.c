@@ -10,25 +10,21 @@
  *
  */
 
-#include <logx/logx.h>
 #include <stdio.h>
+#include <logx/logx.h>
 
-int main()
-{
-    logx_t *logger = logx_create(NULL);
-    if (!logger)
+int main() {
+    // Initialize logger
+    logx_t *logger = logx_create(NULL); // passing NULL to use default configuration
+    if(!logger)
     {
-        fprintf(stderr, "Failed to create logger instance\n");
-        return -1;
+      fprintf(stderr, "Failed to create logx logger instance\n");
+      return -1;
     }
-    LOGX_BANNER(logger, "Welcome to LogX Logging");
-    LOGX_TRACE(logger, "This is a trace message");
-    LOGX_DEBUG(logger, "This is debug message");
-    LOGX_INFO(logger, "This is an info message");
-    LOGX_WARN(logger, "This is a warning message");
-    LOGX_ERROR(logger, "This is a error message");
-    LOGX_FATAL(logger, "This is a fatal message");
 
+    LOGX_DEBUG(logger, "This is a debug message");
+    
+    // Destroy logger to clean up resources
     logx_destroy(logger);
     return 0;
 }

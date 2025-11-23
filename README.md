@@ -75,6 +75,13 @@ chmod +x make_package.sh
 sudo apt install ./build/liblogx-1.0.0.deb
 ```
 
+- After installation, you can refer to the [Quick Start](#quick-start) example on how to integrate LogX with your project.
+- Once that's done, you can use the following command to compile:
+
+```bash
+gcc main.c -o main -llogx
+```
+
 ## Generating Doxygen Documentation
 
 This project uses [Doxygen](http://www.doxygen.nl/) to generate API documentation. You can generate the docs locally by following these steps:
@@ -139,6 +146,8 @@ int main() {
     return 0;
 }
 ```
+
+- Click [here](./GUIDE.md) to view the full guide on LogX's features, how-to-use with neat little examples.
 
 ## Contributing
 
