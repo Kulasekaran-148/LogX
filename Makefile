@@ -21,7 +21,7 @@ EXAMPLE_BIN_ROOT := $(EXAMPLE_DIR)/binaries
 EXAMPLE_LOG_DIR := $(EXAMPLE_DIR)/logs
 
 # Find all example source files recursively
-EXAMPLE_SRC := $(shell find $(EXAMPLE_SRC_DIR) -name "*.c")
+EXAMPLE_SRC := $(shell [ -d $(EXAMPLE_SRC_DIR) ] && find $(EXAMPLE_SRC_DIR) -name "*.c")
 
 # Compute corresponding binary paths:
 #   examples/src/basic/foo.c  →  examples/binaries/basic/foo
@@ -34,7 +34,7 @@ TEST_BIN_ROOT := $(TEST_DIR)/binaries
 TEST_LOG_DIR := $(TEST_DIR)/logs
 
 # Find all example source files recursively
-TEST_SRC := $(shell find $(TEST_SRC_DIR) -name "*.c")
+TEST_SRC := $(shell [ -d $(TEST_SRC_DIR) ] && find $(TEST_SRC_DIR) -name "*.c")
 
 # Compute corresponding binary paths:
 #   tests/src/basic/foo.c  →  tests/binaries/basic/foo
