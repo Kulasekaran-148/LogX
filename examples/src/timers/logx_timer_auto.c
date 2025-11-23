@@ -17,10 +17,12 @@ void compute_heavy(logx_t *logger)
 {
     /* It automatically starts the timer as the function begins
     and calls the logx_timer_stop when the function returns */
-    LOGX_TIME_AUTO(logger, "compute_heavy");
-
-    // Simulated workload
-    sleep(1);
+    LOGX_TIME_AUTO(logger, "compute_heavy")
+    {
+        // Simulated workload
+        sleep(1);
+    }
+    
 }
 
 int main(void)
