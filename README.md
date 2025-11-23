@@ -10,6 +10,7 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+- [Changelog](#changelog)
 - [Quick Start](#quick-start)
 - [Contributing](#contributing)
 - [License](#license)
@@ -19,7 +20,7 @@
 
 ## Introduction
 
-**LogX** is a Sophisticated, flexible, user-friendly and robust logging library in C, designed for Linux based systems with high customizability.
+**LogX** is an easy, sophisticated, flexible, user-friendly and robust logging library in C, designed for Linux based systems with high customizability.
 
 ---
 
@@ -40,11 +41,16 @@
 - Stopwatch timing
 - Thread-safe implementation
 - Lightweight and minimal dependencies
-- Configurable log format (coming soon...)
-- Asynchronous logging support (coming soon...)
-- Log tags (coming soon...)
-- Privacy filtering (coming soon...)
-- Logging mode switch (coming soon...)
+
+## Features (coming soon ... )
+- Configurable log format
+- Asynchronous logging support
+- Log tags
+- Privacy filtering
+- Logging mode switch
+- Logfile compression
+- Multiple file logging
+- syslog support
 
 ---
 
@@ -101,6 +107,9 @@ Once the doxygen generation is complete, you can open `./docs/html/index.html` u
 5. **(Optional) PDF Generation**
 
 Go to `./docs/latex/` and run make to generate the pdf documentation. It will be generated as `refman.pdf`
+
+## Changelog
+- View [changelog](./CHANGELOG.md)
 
 ## Quick Start
 
