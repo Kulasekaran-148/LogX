@@ -120,7 +120,7 @@ const char *logx_level_to_string(logx_level_t level)
     case LOGX_LEVEL_INFO: return "INF";
     case LOGX_LEVEL_WARN: return "WRN";
     case LOGX_LEVEL_ERROR: return "ERR";
-    case LOGX_LEVEL_BANNER: return "INF";
+    case LOGX_LEVEL_BANNER: return "BNR";
     case LOGX_LEVEL_FATAL: return "FTL";
     default: return "MSC";
     }
@@ -338,7 +338,7 @@ static int check_and_rotate_locked(logx_t *l)
             struct stat st;
             if (fstat(l->fd, &st) == 0)
             {
-                if ((size_t)st.st_size >= l->cfg.rotate.max_bytes)
+                if ((size_t)st.st_size >= l->cfg.rotate.size_mb * (1024 * 1024))
                 {
                     file_lock_ex(l->fd);
                     if (l->fp)
@@ -383,7 +383,7 @@ static void logx_set_default_cfg(logx_cfg_t *cfg)
     cfg->enabled_colored_logs   = LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
     cfg->use_tty_detection      = LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION;
     cfg->rotate.type            = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
-    cfg->rotate.max_bytes       = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
+    cfg->rotate.size_mb         = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
     cfg->rotate.max_backups     = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
     cfg->rotate.daily_interval  = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
@@ -538,8 +538,8 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg)
     }
 
     ival = get_int(root, LOGX_KEY_ROTATE_MAX_MBYTES);
-    cfg->rotate.max_bytes =
-        (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
+    cfg->rotate.size_mb =
+        (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
 
     ival                    = get_int(root, LOGX_KEY_ROTATE_MAX_BACKUPS);
     cfg->rotate.max_backups = (ival >= 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
@@ -687,12 +687,12 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
                 {
                     int mbytes = atoi(val);
                     if (mbytes > 0)
-                        cfg->rotate.max_bytes = (size_t)mbytes * 1024 * 1024;
+                        cfg->rotate.size_mb = (size_t)mbytes * 1024 * 1024;
                     else
                     {
                         fprintf(stderr, "[LogX] Invalid rotate_max_Mbytes '%s' → Using default.\n",
                                 val);
-                        cfg->rotate.max_bytes = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
+                        cfg->rotate.size_mb = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
                     }
                 }
                 else if (strcmp(key, LOGX_KEY_ROTATE_MAX_BACKUPS) == 0)
@@ -731,8 +731,8 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
         cfg->file_path = LOGX_DEFAULT_CFG_LOGFILE_PATH;
     if (!cfg->banner_pattern)
         cfg->banner_pattern = LOGX_DEFAULT_CFG_BANNER_PATTERN;
-    if (!cfg->rotate.max_bytes)
-        cfg->rotate.max_bytes = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_SIZE_BYTES;
+    if (!cfg->rotate.size_mb)
+        cfg->rotate.size_mb = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
     if (!cfg->rotate.max_backups)
         cfg->rotate.max_backups = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
     if (!cfg->rotate.daily_interval)
@@ -868,7 +868,7 @@ static void logx_print_config(logx_t *l)
     fprintf(stderr, "[LogX] Log Rotate Type             : %s\n",
             logx_rotate_type_to_string(l->cfg.rotate.type));
     fprintf(stderr, "[LogX] Max Log Size                : %ld MB\n",
-            l->cfg.rotate.max_bytes / (1024 * 1024));
+            l->cfg.rotate.size_mb / (1024 * 1024));
     fprintf(stderr, "[LogX] Max Backups                 : %d\n", l->cfg.rotate.max_backups);
     fprintf(stderr, "[LogX] Rotation Interval (Days)    : %d\n", l->cfg.rotate.daily_interval);
     fprintf(stderr, "[LogX] Print Config                : %s\n", logx_check(l->cfg.print_config));
@@ -939,7 +939,8 @@ logx_t *logx_create(const logx_cfg_t *cfg)
         l->fp = fopen(l->cfg.file_path, "a");
         if (!l->fp)
         {
-            fprintf(stderr, "[LogX] Opening %s failed. Disabling file logging...\n", l->cfg.file_path);
+            fprintf(stderr, "[LogX] Opening %s failed. Disabling file logging...\n",
+                    l->cfg.file_path);
             l->cfg.enable_file_logging = 0; // disable if cannot open
         }
         else

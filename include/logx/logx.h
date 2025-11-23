@@ -60,7 +60,7 @@ typedef enum
 typedef struct
 {
     logx_rotate_type_t type;        /* type of rotation */
-    size_t             max_bytes;   /* used when tyep == LOGX_ROTATE_BY_SIZE */
+    size_t             size_mb;   /* used when tyep == LOGX_ROTATE_BY_SIZE */
     int                max_backups; /* number of backup files to keep (0 = no backups) */
     int daily_interval; /* days between rotations when LOGX_ROTATE_BY_DATE (1 = daily) */
 } logx_rotate_cfg_t;
