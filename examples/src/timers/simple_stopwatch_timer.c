@@ -1,28 +1,29 @@
 /**
- * @file main.c
+ * @file simple_stopwatch_timer.c
  * @author Kulasekaran (kulasekaranslrk@gmail.com)
- * @brief This example demonstrates how to integrate LogX in your project. In this example, the
- * logx_cfg_t is created by the user and filled and passed to the logx_create() function.
+ * @brief This example demonstrates how to use logx timer with start/stop
  * @version 0.1
- * @date 2025-11-12
- *
+ * @date 2025-11-23
+ * 
  * @copyright Copyright (c) 2025
- *
+ * 
  */
 
-#include <logx/logx.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <logx/logx.h>
 
-int main()
+int main(void)
 {
-    logx_t    *logger;
+    logx_t *logger;
+    
     logx_cfg_t cfg = {0};
 
     /* Logger Configuration */
     cfg.name                   = "LogX";
     cfg.enable_console_logging = 1;
     cfg.enable_file_logging    = 1;
-    cfg.file_path              = "./LogX_1.log";
+    cfg.file_path              = "./simple_timer.log";
     cfg.enabled_colored_logs   = 1;
     cfg.use_tty_detection      = 1;
     cfg.console_level          = LOGX_LEVEL_TRACE;
@@ -33,12 +34,23 @@ int main()
     cfg.print_config           = 1;
 
     logger = logx_create(&cfg);
+
     if (!logger)
     {
-        fprintf(stderr, "Failed to create logger instance\n");
+        fprintf(stderr, "[LogX] Failed to create logx logger instance\n");
         return -1;
     }
-    LOGX_BANNER(logger, "Welcome to LogX Logging");
-    logx_destroy(logger);
+
+    LOGX_BANNER(logger, "Simple Timer example");
+
+    LOGX_DEBUG(logger, "Starting timer...");
+    logx_timer_start(logger, "simple");
+
+    // Simulated work
+    sleep(1);
+
+    LOGX_DEBUG(logger, "Stopping timer...");
+    logx_timer_stop(logger, "simple");
+
     return 0;
 }

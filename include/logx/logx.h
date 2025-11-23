@@ -13,18 +13,26 @@
 #define _LOGX_H 
 
 #include "version.h"
-#include "logx_timers.h"
 
 #include <pthread.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#ifndef LOGX_MAX_TIMERS
+#define LOGX_MAX_TIMERS 5
+#endif
+
+/* Automatically starts-stops a timer based on RAII-style object */
+#define LOGX_TIME_AUTO(logger, name) \
+    for (int _i = (logx_timer_start(logger, name), 0); !_i; logx_timer_stop(logger, name), _i++)
 
 /* Log levels */
 typedef enum
@@ -74,7 +82,16 @@ typedef struct
     int               print_config;      /* 0/1 */
 } logx_cfg_t;
 
-struct logx_t
+/* Timer object */
+typedef struct
+{
+    const char     *name;
+    struct timespec start;
+    uint64_t        accumulated_ns; // nanoseconds accumulated due to pauses
+    bool            running;        // 1 if currently running
+} logx_timer_t;
+
+typedef struct
 {
     logx_cfg_t      cfg;
     FILE           *fp;               /* opened log file */
@@ -83,12 +100,10 @@ struct logx_t
     char            current_date[16]; /* YYYY-MM-DD for date based rotation */
     logx_timer_t    timers[LOGX_MAX_TIMERS]; /* stopwatch timers */
     int             timer_count;
-};
+} logx_t;
 
-/* Opaque logger handle - definition is in the .c file but we expose the struct type for static
- * alloc options */
-typedef struct logx_t logx_t;
 
+/* Utility functions - Users can call */
 /* Create and initialize a logger. Returns NULL on failure. */
 logx_t *logx_create(const logx_cfg_t *cfg);
 
@@ -106,6 +121,20 @@ void logx_set_file_logging(logx_t *logger, int enable);
 /* Force an immediate rotation (useful for admin triggers) */
 int logx_rotate_now(logx_t *logger);
 
+/* Creates or starts a logx timer */
+void logx_timer_start(logx_t *logger, const char *name);
+
+/* Stops a logx timer */
+void logx_timer_stop(logx_t *logger, const char *name);
+
+/* Pauses a logx timer */
+void logx_timer_pause(logx_t *logger, const char *name);
+
+/* Resumes a logx timer */
+void logx_timer_resume(logx_t *logger, const char *name);
+
+
+/* Helper functions - LogX will internally call */
 /* Log a message. file/func/line are helpers provided by macros below. */
 void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
               const char *fmt, ...);
@@ -122,13 +151,13 @@ int is_valid_logx_level(logx_level_t level);
 /* Helper: validates whether type is a valid logx_rotate_type_t value */
 int is_valid_logx_rotate_type(logx_rotate_type_t type);
 
-/* Locks the fd using flock */
+/* Helper: Locks the fd using flock */
 int file_lock_ex(int fd);
 
-/* Unlocks the fd */
+/* Helper: Unlocks the fd */
 int file_lock_un(int fd);
 
-/* Rotates log files */
+/* Helper: Rotates log files */
 int rotate_files(const char *path, int max_backups);
 
 /* Macros for easy logging (these expand to a call that includes file/func/line) */

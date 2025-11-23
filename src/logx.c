@@ -375,7 +375,7 @@ static void logx_set_default_cfg(logx_cfg_t *cfg)
     memset(cfg, 0, sizeof(*cfg)); // ensure no garbage
 
     cfg->name                   = LOGX_DEFAULT_CFG_NAME;
-    cfg->file_path              = LOGX_DEFAULT_CFG_PATH;
+    cfg->file_path              = LOGX_DEFAULT_CFG_LOGFILE_PATH;
     cfg->console_level          = LOGX_DEFAULT_CFG_CONSOLE_LEVEL;
     cfg->file_level             = LOGX_DEFAULT_CFG_FILE_LEVEL;
     cfg->enable_console_logging = LOGX_DEFAULT_CFG_ENABLE_CONSOLE_LOGGING;
@@ -455,7 +455,7 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg)
     cfg->name = val ? strdup(val) : LOGX_DEFAULT_CFG_NAME;
 
     val            = get_str(root, LOGX_KEY_FILE_PATH);
-    cfg->file_path = val ? strdup(val) : LOGX_DEFAULT_CFG_PATH;
+    cfg->file_path = val ? strdup(val) : LOGX_DEFAULT_CFG_LOGFILE_PATH;
 
     ival                        = get_bool(root, LOGX_KEY_ENABLE_CONSOLE_LOGGING);
     cfg->enable_console_logging = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_CONSOLE_LOGGING;
@@ -728,7 +728,7 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg)
     if (!cfg->name)
         cfg->name = LOGX_DEFAULT_CFG_NAME;
     if (!cfg->file_path)
-        cfg->file_path = LOGX_DEFAULT_CFG_PATH;
+        cfg->file_path = LOGX_DEFAULT_CFG_LOGFILE_PATH;
     if (!cfg->banner_pattern)
         cfg->banner_pattern = LOGX_DEFAULT_CFG_BANNER_PATTERN;
     if (!cfg->rotate.max_bytes)
@@ -939,6 +939,7 @@ logx_t *logx_create(const logx_cfg_t *cfg)
         l->fp = fopen(l->cfg.file_path, "a");
         if (!l->fp)
         {
+            fprintf(stderr, "[LogX] Opening %s failed. Disabling file logging...\n", l->cfg.file_path);
             l->cfg.enable_file_logging = 0; // disable if cannot open
         }
         else

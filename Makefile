@@ -16,17 +16,29 @@ VERSION := $(MAJOR).$(MINOR).$(PATCH)
 
 # ---- Examples ----
 EXAMPLE_DIR := examples
-EXAMPLE_SRC := $(wildcard $(EXAMPLE_DIR)/src/*.c)
-EXAMPLE_BIN_DIR := $(EXAMPLE_DIR)/binaries
+EXAMPLE_SRC_DIR := $(EXAMPLE_DIR)/src
+EXAMPLE_BIN_ROOT := $(EXAMPLE_DIR)/binaries
 EXAMPLE_LOG_DIR := $(EXAMPLE_DIR)/logs
-EXAMPLE_BINS := $(patsubst $(EXAMPLE_DIR)/src/%.c,$(EXAMPLE_BIN_DIR)/%,$(EXAMPLE_SRC))
+
+# Find all example source files recursively
+EXAMPLE_SRC := $(shell find $(EXAMPLE_SRC_DIR) -name "*.c")
+
+# Compute corresponding binary paths:
+#   examples/src/basic/foo.c  →  examples/binaries/basic/foo
+EXAMPLE_BINS := $(patsubst $(EXAMPLE_SRC_DIR)/%.c,$(EXAMPLE_BIN_ROOT)/%,$(EXAMPLE_SRC))
 
 # ---- Tests ----
 TEST_DIR    := tests
-TEST_SRC := $(wildcard $(TEST_DIR)/src/*.c)
-TEST_BIN_DIR := $(TEST_DIR)/binaries
+TEST_SRC_DIR := $(TEST_DIR)/src
+TEST_BIN_ROOT := $(TEST_DIR)/binaries
 TEST_LOG_DIR := $(TEST_DIR)/logs
-TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(TEST_BIN_DIR)/%,$(TEST_SRC))
+
+# Find all example source files recursively
+TEST_SRC := $(shell find $(TEST_SRC_DIR) -name "*.c")
+
+# Compute corresponding binary paths:
+#   tests/src/basic/foo.c  →  tests/binaries/basic/foo
+TEST_BINS := $(patsubst $(TEST_SRC_DIR)/%.c,$(TEST_BIN_ROOT)/%,$(TEST_SRC))
 
 # ---- Target ----
 TARGET			:= logx
@@ -44,9 +56,9 @@ LIBS = -llogx -lyaml -lcjson
 # ---- Compiler settings ----
 CC          := gcc
 AR          := ar
-CFLAGS      := -Wall -Wextra -std=c11 -fPIC -I$(INC_DIR)
+CFLAGS      := -Wall -Wextra -std=c11 -fPIC -pthread -I$(INC_DIR)
 ARFLAGS     := rcs
-LDFLAGS     := -shared
+LDFLAGS     := -shared -pthread
 
 # ---- Build type configuration ----
 DEBUG_FLAGS   := -g -O0 -DDEBUG
@@ -71,7 +83,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 all: dirs $(TARGET_STATIC) $(TARGET_SHARED) example test
 
 dirs:
-	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR) $(EXAMPLE_LOG_DIR) $(TEST_LOG_DIR)
 
 # ---- Compilation ----
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -103,27 +115,22 @@ tidy:
 	@$(TIDY) $(SRC_FILES) -- -I$(INC_DIR)
 	@echo "✅ Clang-tidy check complete."
 
-# ---- Testing ----
-test: $(TEST_BIN_DIR) $(TEST_BINS)
-	@echo "🧪 Building test..."
-	@echo "✅ Built tests → $(TEST_BIN_DIR)"
+# ---- Tests ----
+test: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(TEST_BINS)
+	@echo "✅ Built tests → $(TEST_BIN_ROOT)"
 
-$(TEST_BIN_DIR):
-	mkdir -p $(TEST_BIN_DIR)
-
-$(TEST_BIN_DIR)/%: $(TEST_DIR)/src/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+# Ensure binary directories exist (auto-mkdir)
+$(TEST_BIN_ROOT)/%: $(TEST_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Examples ----
-example: $(EXAMPLE_BIN_DIR) $(EXAMPLE_BINS)
-	@echo "🗺️  Building examples..."
-	@echo "✅ Built examples → $(EXAMPLE_BIN_DIR)"
+example: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(EXAMPLE_BINS)
+	@echo "✅ Built examples → $(EXAMPLE_BIN_ROOT)"
 
-$(EXAMPLE_BIN_DIR):
-	mkdir -p $(EXAMPLE_BIN_DIR)
-
-# Pattern rule for building example binaries
-$(EXAMPLE_BIN_DIR)/%: $(EXAMPLE_DIR)/src/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+# Ensure binary directories exist (auto-mkdir)
+$(EXAMPLE_BIN_ROOT)/%: $(EXAMPLE_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
 # ---- Cleanup ----
@@ -131,11 +138,11 @@ clean:
 	@echo "🧹 Cleaning build..."
 	@rm -rf $(BUILD_DIR)
 	@echo "🧹 Cleaning example binaries..."
-	@rm -rf $(EXAMPLE_BIN_DIR)
+	@rm -rf $(EXAMPLE_BIN_ROOT)
 	@echo "🧹 Cleaning example log files..."
 	@rm -rf $(EXAMPLE_LOG_DIR)
 	@echo "🧹 Cleaning test binaries..."
-	@rm -rf $(TEST_BIN_DIR)
+	@rm -rf $(TEST_BIN_ROOT)
 	@echo "🧹 Cleaning test log files..."
 	@rm -rf $(TEST_LOG_DIR)
 	@echo "✅ Clean complete."
