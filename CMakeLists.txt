@@ -1,5 +1,28 @@
 cmake_minimum_required(VERSION 3.16)
-project(LogX VERSION 1.0.1 LANGUAGES C)
+
+# Path to version header
+set(VERSION_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/logx/version.h")
+
+# Read version header file
+file(READ "${VERSION_HEADER}" VERSION_CONTENTS)
+
+# Extract major, minor, patch using regex
+string(REGEX MATCH "#define[ \t]+LOGX_MAJOR_VERSION[ \t]+([0-9]+)" _ "${VERSION_CONTENTS}")
+set(LOGX_MAJOR_VERSION "${CMAKE_MATCH_1}")
+
+string(REGEX MATCH "#define[ \t]+LOGX_MINOR_VERSION[ \t]+([0-9]+)" _ "${VERSION_CONTENTS}")
+set(LOGX_MINOR_VERSION "${CMAKE_MATCH_1}")
+
+string(REGEX MATCH "#define[ \t]+LOGX_PATCH_VERSION[ \t]+([0-9]+)" _ "${VERSION_CONTENTS}")
+set(LOGX_PATCH_VERSION "${CMAKE_MATCH_1}")
+
+# Combine into full version string
+set(LOGX_VERSION "${LOGX_MAJOR_VERSION}.${LOGX_MINOR_VERSION}.${LOGX_PATCH_VERSION}")
+
+# Use extracted version
+project(LogX VERSION "${LOGX_VERSION}" LANGUAGES C)
+
+#project(LogX VERSION 1.0.2 LANGUAGES C)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_C_STANDARD 11)
@@ -46,7 +69,7 @@ install(TARGETS logx_static
 # --- Packaging configuration ---
 set(CPACK_PACKAGE_NAME "liblogx")
 set(CPACK_PACKAGE_VENDOR "Kulasekaran")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LogX - Production-grade Logger Library for C")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LogX - Production-grade Logger Library in C for Linux")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 
