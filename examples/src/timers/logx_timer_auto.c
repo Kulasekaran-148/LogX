@@ -13,16 +13,31 @@
 #include <unistd.h>
 #include <logx/logx.h>
 
-void compute_heavy(logx_t *logger)
+void auto_timer(logx_t *logger, int wait_time)
 {
     /* It automatically starts the timer as the function begins
     and calls the logx_timer_stop when the function returns */
-    LOGX_TIME_AUTO(logger, "compute_heavy")
+    LOGX_TIME_AUTO(logger, "auto timer")
     {
-        // Simulated workload
-        sleep(1);
+        switch(wait_time)
+        {
+            case 1:
+                sleep(1);
+                return;
+
+            case 2:
+                sleep(2);
+                return;
+
+            case 3:
+                sleep(3);
+                return;
+
+            default:
+                sleep(1);
+                return;
+        }
     }
-    
 }
 
 int main(void)
@@ -53,7 +68,7 @@ int main(void)
     }
 
     LOGX_BANNER(logger, "LOGX_TIMER_AUTO example");
-    compute_heavy(logger);
+    auto_timer(logger, 2);
 
     logx_destroy(logger);
     return 0;

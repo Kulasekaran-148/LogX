@@ -30,9 +30,14 @@ extern "C"
 #define LOGX_MAX_TIMERS 5
 #endif
 
+#ifndef LOGX_TIMER_MAX_LEN
+#define LOGX_TIMER_MAX_LEN 64
+#endif
+
 /* Automatically starts-stops a timer based on RAII-style object */
 #define LOGX_TIME_AUTO(logger, name) \
-    for (int _i = (logx_timer_start(logger, name), 0); !_i; logx_timer_stop(logger, name), _i++)
+    __attribute__((cleanup(logx_timer_auto_cleanup))) \
+    logx_timer_t *_logx_auto_timer = logx_timer_start_ptr(logger, name)
 
 /* Log levels */
 typedef enum
@@ -85,8 +90,8 @@ typedef struct
 /* Timer object */
 typedef struct
 {
-    const char     *name;
-    struct timespec start;
+    char            name[LOGX_TIMER_MAX_LEN]; // Timer name
+    struct timespec start;          // Start time
     uint64_t        accumulated_ns; // nanoseconds accumulated due to pauses
     bool            running;        // 1 if currently running
 } logx_timer_t;

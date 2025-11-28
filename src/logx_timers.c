@@ -188,7 +188,10 @@ void logx_timer_start(logx_t *logger, const char *name)
     }
 
     logx_timer_t *t = &logger->timers[logger->timer_count++];
-    t->name         = name;
+    
+    strncpy(t->name, name, LOGX_TIMER_MAX_LEN - 1);
+    t->name[LOGX_TIMER_MAX_LEN - 1] = '\0'; // Ensure null-termination
+
     clock_gettime(CLOCK_MONOTONIC, &t->start);
     t->accumulated_ns = 0;
     t->running        = 1;
@@ -357,4 +360,17 @@ void logx_timer_stop(logx_t *logger, const char *name)
     logger->timer_count--;
 
     pthread_mutex_unlock(&logger->lock);
+}
+
+static inline void logx_timer_auto_cleanup(logx_timer_t **t)
+{
+    if (*t)
+        logx_timer_stop((*t)->logger, (*t)->name);
+}
+
+
+logx_timer_t *logx_timer_start_ptr(logx_t *logger, const char *name)
+{
+    logx_timer_start(logger, name);
+    return find_timer(logger, name); // You already have find_timer_index()
 }
