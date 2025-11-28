@@ -195,9 +195,11 @@ This project is licensed under the **MIT License**. See [LICENSE](https://github
   <a href="https://github.com/Kulasekaran-148">
     <img src="https://img.shields.io/badge/GitHub-000?logo=github&logoColor=white">
   </a>
+  &nbsp;
   <a href="mailto:kulasekaranslrk@gmail.com">
     <img src="https://img.shields.io/badge/Email-666?logo=gmail&logoColor=white">
   </a>
+  &nbsp;
   <a href="https://www.linkedin.com/in/kulasekaran148/">
     <img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white">
   </a>
