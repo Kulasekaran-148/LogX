@@ -1,4 +1,4 @@
-# LogX Guide
+# LogX User Guide
 
 This guide contains easy-to-understand examples explaining how to use each and every features of LogX
 
@@ -12,18 +12,24 @@ This guide contains easy-to-understand examples explaining how to use each and e
     - [Parsing configuration from custom file](#logx-integration---parsing-configuration-from-default-file)
 
 2. [LogX - Log Levels](#logx---log-levels)
-    - [LogX - Trace](#logx---trace)
-    - [LogX - Debug](#logx---debug)
-    - [LogX - Info](#logx---info)
-    - [LogX - warn](#logx---warn)
-    - [LogX - error](#logx---error)
-    - [LogX - fatal](#logx---fatal)
-    - [LogX - banner](#logx---banner)
+    - [Trace](#logx---trace)
+    - [Debug](#logx---debug)
+    - [Info](#logx---info)
+    - [Warn](#logx---warn)
+    - [Error](#logx---error)
+    - [Fatal](#logx---fatal)
+    - [Banner](#logx---banner)
 
 3. [LogX - Log Rotation](#logx---log-rotation)
-    - [LogX - Rotation based on Size](#logx---rotation-based-on-size)
-    - [LogX - Rotation based on Date](#logx---rotation-based-on-date)
-    - [LogX - No Rotation](#logx---no-rotation)
+    - [Rotation based on Size](#logx---rotation-based-on-size)
+    - [Rotation based on Date](#logx---rotation-based-on-date)
+    - [No Rotation](#logx---no-rotation)
+
+4. [LogX - Timers](#logx---timers)
+    - [Simple Timer](#simple-timer)
+    - [Pause & Resume](#pause-&-resume)
+    - [Auto scope timer](#auto-scope-timer)
+
 
 ## Logx Integration
 
@@ -47,6 +53,7 @@ typedef struct
     int               print_config;           /* Enable / Disable verbose print of LogX configuration that's chosen */
 } logx_cfg_t;
 ```
+---
 
 ### LogX Integration - Default Configuration
 
@@ -82,6 +89,8 @@ int main() {
 ### Output:
 
 ![basic_example_default_settings](./assets/images/basic_example_default_settings.png)
+
+---
 
 ### LogX Integration - Passing configuration
 
@@ -124,6 +133,8 @@ int main()
 
 ![basic example passing configuration](./assets/images/basic_example_passing_configuration.png)
 
+---
+
 ### LogX Integration - Parsing configuration from default file
 
 - When `logx_create()` is called with NULL, LogX will try to look for configuration information in the following order until success:
@@ -153,6 +164,8 @@ int main()
 
 ![basic example parsing configuration from default file](./assets/images/basic_example_parsing_configuration_from_default_file.png)
 
+---
+
 ### LogX Integration - Parsing configuration from custom file
 
 - When `logx_create()` is called with NULL, LogX will try to look for configuration information in the following order until success:
@@ -179,6 +192,8 @@ int main()
     return 0;
 }
 ```
+
+---
 
 ## LogX - Log Levels
 
@@ -266,6 +281,8 @@ LOGX_BANNER(logger, "This is a banner message and CYAN in color");
 
 - Banner messages are **auto-centered** inside the banner, making it look aesthetically more beautiful ✨
 
+---
+
 ## LogX - Log Rotation
 
 - LogX comes in handy with log rotation feature, so that you don't need to worry about your log file filling up the space
@@ -293,6 +310,8 @@ typedef enum
 } logx_rotate_type_t;
 ```
 
+---
+
 ### LogX - Rotation based on size
 
 During configuration, you can use `cfg.rotate.type` to set it based on size and specify the size in mb using `cfg.rotate.size_mb`
@@ -308,6 +327,8 @@ cfg.rotate.max_backups = 5; // Number of backups to maintain
 - Again when size exceeds, `example.log.1` --> `example.log.2`
 - This continues until there are `cfg.rotate.max_backups` number of log files are present. Now, when size exceeds again, the oldest of the log file gets deleted.
 
+---
+
 ### LogX - Rotation based on date
 
 During `logx_create`, LogX will save the current date in its configuration. Using this information, the LOGX_ROTATE_BY_DATE works.
@@ -322,7 +343,57 @@ cfg.rotate.max_backups = 5    // Number of backups to maintain
 
 - With rotation by date, number of backups mean, the number of days after which the oldest log files will start getting deleted.
 
+---
+
 ### LogX - No rotation
 
 - If you don't want LogX to take care of rotation at all, just specify `cfg.rotate.type = LOGX_ROTATE_NONE`
 - When the above is set, none of the rotation configuration matters
+
+---
+
+## LogX - Timers
+
+### Simple Timer
+
+```c
+LOGX_DEBUG(logger, "Starting timer...");
+logx_timer_start(logger, "simple");
+
+// Simulated work
+sleep(1);
+
+LOGX_DEBUG(logger, "Stopping timer...");
+logx_timer_stop(logger, "simple");
+```
+
+---
+
+### Pause & Resume
+
+```c
+// start the timer
+logx_timer_start(logger, "task");
+
+// do some work for 1s
+sleep(1);
+
+logx_timer_pause(logger, "task");
+
+// Simulate idle / wait
+sleep(2);
+
+LOGX_DEBUG(logger, "Resuming timer: task\n");
+logx_timer_resume(logger, "task");
+
+// Phase 2
+sleep(1);
+
+LOGX_DEBUG(logger, "Stopping timer: task\n");
+logx_timer_stop(logger, "task");
+```
+---
+
+### Auto Scope timer
+
+---
