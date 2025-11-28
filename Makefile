@@ -9,16 +9,16 @@ SRC_DIR     := src
 INC_DIR     := include
 
 # ---- Version ----
-MAJOR := $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-MINOR := $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-PATCH := $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
+MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
+PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
 VERSION := $(MAJOR).$(MINOR).$(PATCH)
 
 # ---- Examples ----
-EXAMPLE_DIR := examples
-EXAMPLE_SRC_DIR := $(EXAMPLE_DIR)/src
-EXAMPLE_BIN_ROOT := $(EXAMPLE_DIR)/binaries
-EXAMPLE_LOG_DIR := $(EXAMPLE_DIR)/logs
+EXAMPLE_DIR 		:= examples
+EXAMPLE_SRC_DIR 	:= $(EXAMPLE_DIR)/src
+EXAMPLE_BIN_ROOT 	:= $(EXAMPLE_DIR)/binaries
+EXAMPLE_LOG_DIR 	:= $(EXAMPLE_DIR)/logs
 
 # Find all example source files recursively
 EXAMPLE_SRC := $(shell [ -d $(EXAMPLE_SRC_DIR) ] && find $(EXAMPLE_SRC_DIR) -name "*.c")
@@ -28,10 +28,10 @@ EXAMPLE_SRC := $(shell [ -d $(EXAMPLE_SRC_DIR) ] && find $(EXAMPLE_SRC_DIR) -nam
 EXAMPLE_BINS := $(patsubst $(EXAMPLE_SRC_DIR)/%.c,$(EXAMPLE_BIN_ROOT)/%,$(EXAMPLE_SRC))
 
 # ---- Tests ----
-TEST_DIR    := tests
-TEST_SRC_DIR := $(TEST_DIR)/src
-TEST_BIN_ROOT := $(TEST_DIR)/binaries
-TEST_LOG_DIR := $(TEST_DIR)/logs
+TEST_DIR    	:= tests
+TEST_SRC_DIR 	:= $(TEST_DIR)/src
+TEST_BIN_ROOT 	:= $(TEST_DIR)/binaries
+TEST_LOG_DIR 	:= $(TEST_DIR)/logs
 
 # Find all example source files recursively
 TEST_SRC := $(shell [ -d $(TEST_SRC_DIR) ] && find $(TEST_SRC_DIR) -name "*.c")
@@ -42,14 +42,14 @@ TEST_BINS := $(patsubst $(TEST_SRC_DIR)/%.c,$(TEST_BIN_ROOT)/%,$(TEST_SRC))
 
 # ---- Target ----
 TARGET			:= logx
-TARGET_STATIC := $(BUILD_DIR)/lib$(TARGET).a
-TARGET_SHARED := $(BUILD_DIR)/lib$(TARGET).so
-SONAME      := lib$(TARGET).so.$(VERSION)
+TARGET_STATIC 	:= $(BUILD_DIR)/lib$(TARGET).a
+TARGET_SHARED 	:= $(BUILD_DIR)/lib$(TARGET).so
+SONAME      	:= lib$(TARGET).so.$(VERSION)
 
 # ---- Documentattion ----
-DOXYFILE := Doxyfile
-DOCS_DIR := docs
-LATEX_DIR := $(DOCS_DIR)/latex
+DOXYFILE 	:= Doxyfile
+DOCS_DIR 	:= docs
+LATEX_DIR 	:= $(DOCS_DIR)/latex
 
 LIBS = -llogx -lyaml -lcjson
 
@@ -80,7 +80,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 # ---- Default rule ----
-all: dirs $(TARGET_STATIC) $(TARGET_SHARED) example test
+all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) example test
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(EXAMPLE_LOG_DIR) $(TEST_LOG_DIR)

@@ -401,8 +401,37 @@ logx_timer_stop(logger, "pause_resume_timer");
     - You started the timer at the start of a funciton
     - Say, you have multiple cases at which your function could return
     - Now, you need not manually stop the timer before all the `return;` statements
-    - Instead encase the whole function using `LOGX_TIMER_AUTO(logger, "timer name"){}` 
+    - Instead encase the whole function using `LOGX_TIMER_AUTO` and it will do the trick
+    
 ```c
+// call the function whose timing you want to measure
+auto_timer(logger, 1);
 
+void auto_timer(logx_t *logger, int wait_time)
+{
+    LOGX_TIMER_AUTO(logger, "auto timer");
+
+    switch(wait_time)
+    {
+        case 1:
+            sleep(1);
+            return;
+
+        case 2:
+            sleep(2);
+            return;
+
+        case 3:
+            sleep(3);
+            return;
+
+        default:
+            sleep(1);
+            return;
+    }
+}
 ```
+
+![auto_timer.png](./assets/images/auto_timer.png)
+
 ---

@@ -59,14 +59,12 @@ const size_t LOGX_CONFIG_KEY_COUNT = sizeof(LOGX_CONFIG_KEYS) / sizeof(LOGX_CONF
  * of the information is not present, then it means it must've hit some error while parsing or the
  * key must be invlaid in the provided configuration file
  */
-void log_missing_json_keys(cJSON *root)
-{
-    for (size_t i = 0; i < LOGX_CONFIG_KEY_COUNT; ++i)
-    {
+void log_missing_json_keys(cJSON *root) {
+    for (size_t i = 0; i < LOGX_CONFIG_KEY_COUNT; ++i) {
         const char *key = LOGX_CONFIG_KEYS[i].key;
-        if (!cJSON_GetObjectItem(root, key))
-        {
-            fprintf(stderr, "[LogX] Missing key: %-25s (%s)\n", key, LOGX_CONFIG_KEYS[i].description);
+        if (!cJSON_GetObjectItem(root, key)) {
+            fprintf(stderr, "[LogX] Missing key: %-25s (%s)\n", key,
+                    LOGX_CONFIG_KEYS[i].description);
         }
     }
 }

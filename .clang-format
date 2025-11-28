@@ -16,7 +16,7 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: true
 BitFieldColonSpacing: Both
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
 BraceWrapping:
   AfterFunction: true
   AfterStruct: true

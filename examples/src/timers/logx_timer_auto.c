@@ -17,26 +17,26 @@ void auto_timer(logx_t *logger, int wait_time)
 {
     /* It automatically starts the timer as the function begins
     and calls the logx_timer_stop when the function returns */
-    LOGX_TIME_AUTO(logger, "auto timer")
+    
+    LOGX_TIMER_AUTO(logger, "auto timer");
+
+    switch(wait_time)
     {
-        switch(wait_time)
-        {
-            case 1:
-                sleep(1);
-                return;
+        case 1:
+            sleep(1);
+            return;
 
-            case 2:
-                sleep(2);
-                return;
+        case 2:
+            sleep(2);
+            return;
 
-            case 3:
-                sleep(3);
-                return;
+        case 3:
+            sleep(3);
+            return;
 
-            default:
-                sleep(1);
-                return;
-        }
+        default:
+            sleep(1);
+            return;
     }
 }
 
@@ -68,7 +68,7 @@ int main(void)
     }
 
     LOGX_BANNER(logger, "LOGX_TIMER_AUTO example");
-    auto_timer(logger, 2);
+    auto_timer(logger, 1);
 
     logx_destroy(logger);
     return 0;

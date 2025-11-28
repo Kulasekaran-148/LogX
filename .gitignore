@@ -57,6 +57,9 @@ dkms.conf
 # IDE
 *.vscode
 
+# logs
+*.log
+
 # example artifacts
 examples/binaries
 examples/logs

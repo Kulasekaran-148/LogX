@@ -43,14 +43,14 @@ int main(void)
 
     LOGX_BANNER(logger, "Simple Timer example");
 
-    LOGX_DEBUG(logger, "Starting timer...");
-    logx_timer_start(logger, "simple");
+    // start the timer
+    logx_timer_start(logger, "timer name");
 
-    // Simulated work
+    // do some work for 1s
     sleep(1);
 
-    LOGX_DEBUG(logger, "Stopping timer...");
-    logx_timer_stop(logger, "simple");
+    // stop the timer
+    logx_timer_stop(logger, "timer name");
 
     return 0;
 }

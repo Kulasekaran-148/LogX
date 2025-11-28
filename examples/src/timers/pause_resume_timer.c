@@ -43,26 +43,26 @@ int main(void)
 
     LOGX_BANNER(logger, "Pause - Resume - Timer example");
     
-    LOGX_DEBUG(logger, "Starting timer: task\n");
-    logx_timer_start(logger, "task");
+    // start the timer
+    logx_timer_start(logger, "pause_resume_timer");
 
-    // Phase 1
+    // do some work for 1s
     sleep(1);
 
-    LOGX_DEBUG(logger, "Pausing timer: task\n");
-    logx_timer_pause(logger, "task");
+    // pause the timer
+    logx_timer_pause(logger, "pause_resume_timer");
 
-    // Simulate idle / wait
+    // do some work for 1s
     sleep(2);
 
-    LOGX_DEBUG(logger, "Resuming timer: task\n");
-    logx_timer_resume(logger, "task");
+    // resume the timer
+    logx_timer_resume(logger, "pause_resume_timer");
 
-    // Phase 2
+    // do some work for 1s
     sleep(1);
 
-    LOGX_DEBUG(logger, "Stopping timer: task\n");
-    logx_timer_stop(logger, "task");
+    // stop the timer
+    logx_timer_stop(logger, "pause_resume_timer");
 
     logx_destroy(logger);
     return 0;
