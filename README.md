@@ -1,4 +1,6 @@
-# LogX
+<p align="center">
+  <img src="https://svg-banners.vercel.app/api?type=glitch&text1=LogX&height=200" width="100%" />
+</p>
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Kulasekaran-148/LogX/build.yml?branch=main)](https://github.com/Kulasekaran-148/LogX/actions)  
 [![License](https://img.shields.io/github/license/Kulasekaran-148/LogX)](LICENSE)  
@@ -63,7 +65,24 @@
 sudo apt install cmake libyaml-dev libcjson-dev -y
 ```
 
+- *NOTE:* 
+  - Dependencies need to be installed manually before building from source
+  - Dependencies are auto installed when installing from Releases
+
 ## Installation
+
+### From Releases
+
+- Click [here](https://github.com/Kulasekaran-148/LogX/releases) to download the latest release of LogX
+- In the Releases page, download the ` liblogx-x.x.x.deb` file to your PC
+- Navigate to the directory where you downloaded the file
+- Run the following command to install LogX to your PC:
+
+```bash
+sudo apt update && sudo apt install liblogx-x.x.x.deb -y
+```
+
+- Once it is installed, refere to [Quick Start](#quick-start) section on how to get started with using LogX
 
 ### From Source
 
@@ -171,10 +190,15 @@ This project is licensed under the **MIT License**. See [LICENSE](https://github
 
 ## Contact
 
-Developed and maintained by **Kulasekaran S**
-
-Github: https://github.com/Kulasekaran-148
-
-Email: kulasekaranslrk@gmail.com
-
-Linkedin: https://www.linkedin.com/in/kulasekaran148/
+<p align="center">
+  Developed with ❤️ by <strong>Kulasekaran Sadagopan</strong><br><br>
+  <a href="https://github.com/Kulasekaran-148">
+    <img src="https://img.shields.io/badge/GitHub-000?logo=github&logoColor=white">
+  </a>
+  <a href="mailto:kulasekaranslrk@gmail.com">
+    <img src="https://img.shields.io/badge/Email-666?logo=gmail&logoColor=white">
+  </a>
+  <a href="https://www.linkedin.com/in/kulasekaran148/">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white">
+  </a>
+</p>
