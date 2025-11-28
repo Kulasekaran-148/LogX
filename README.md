@@ -91,7 +91,7 @@ git clone https://github.com/Kulasekaran-148/LogX.git
 cd LogX
 chmod +x make_package.sh
 ./make_package.sh
-sudo apt install ./build/liblogx-1.0.0.deb
+sudo apt install ./build/liblogx-.x.x.deb
 ```
 
 - After installation, you can refer to the [Quick Start](#quick-start) example on how to integrate LogX with your project.

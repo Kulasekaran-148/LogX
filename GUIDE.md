@@ -357,14 +357,14 @@ cfg.rotate.max_backups = 5    // Number of backups to maintain
 ### Simple Timer
 
 ```c
-LOGX_DEBUG(logger, "Starting timer...");
-logx_timer_start(logger, "simple");
+// start the timer
+logx_timer_start(logger, "timer name");
 
-// Simulated work
+// do some work for 1s
 sleep(1);
 
-LOGX_DEBUG(logger, "Stopping timer...");
-logx_timer_stop(logger, "simple");
+// stop the timer
+logx_timer_stop(logger, "timer name");
 ```
 
 ---
@@ -373,27 +373,36 @@ logx_timer_stop(logger, "simple");
 
 ```c
 // start the timer
-logx_timer_start(logger, "task");
+logx_timer_start(logger, "pause_resume_timer");
 
 // do some work for 1s
 sleep(1);
 
-logx_timer_pause(logger, "task");
+// pause the timer
+logx_timer_pause(logger, "pause_resume_timer");
 
-// Simulate idle / wait
+// do some work for 1s
 sleep(2);
 
-LOGX_DEBUG(logger, "Resuming timer: task\n");
-logx_timer_resume(logger, "task");
+// resume the timer
+logx_timer_resume(logger, "pause_resume_timer");
 
-// Phase 2
+// do some work for 1s
 sleep(1);
 
-LOGX_DEBUG(logger, "Stopping timer: task\n");
-logx_timer_stop(logger, "task");
+// stop the timer
+logx_timer_stop(logger, "pause_resume_timer");
 ```
 ---
 
 ### Auto Scope timer
 
+- Auto scope timer comes in very handy
+    - You started the timer at the start of a funciton
+    - Say, you have multiple cases at which your function could return
+    - Now, you need not manually stop the timer before all the `return;` statements
+    - Instead encase the whole function using `LOGX_TIMER_AUTO(logger, "timer name"){}` 
+```c
+
+```
 ---
