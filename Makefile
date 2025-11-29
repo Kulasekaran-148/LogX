@@ -4,6 +4,7 @@
 
 # ---- Project setup ----
 PROJECT     := LogX
+LIB_NAME	:= liblogx
 BUILD_DIR   := build
 SRC_DIR     := src
 INC_DIR     := include
@@ -166,6 +167,16 @@ fresh_docs: clean_docs
 	@$(MAKE) -C $(LATEX_DIR)  # Run make in the LaTeX folder
 	@echo "✅ Docs generation complete."
 
+# Run Debian package making script
+deb:
+	@./scripts/make_package.sh
+
+# Install the deb package
+install: deb
+	@echo "📦 Installing Debian package..."
+	@sudo apt install --reinstall ./build/$(LIB_NAME)-$(VERSION).deb
+	@echo "✅ Installation complete."
+
 # ---- Help ----
 help:
 	@echo ""
@@ -179,15 +190,17 @@ help:
 	@echo "  make fresh                    - Clean and build"
 	@echo "  make format                   - Run clang-format on all source and headers"
 	@echo "  make tidy                     - Run clang-tidy static analysis"
-	@echo "  make example									 - Build examples"
+	@echo "  make example				   - Build examples"
 	@echo "  make test                     - Build tests"
 	@echo "  make clean_docs               - Clean the doxygen docs folder"
 	@echo "  make fresh_docs               - Clean and build the doxygen docs folder"
 	@echo "  make help                     - Show this help message"
+	@echo "  make deb                      - Create Debian package"
+	@echo "  make install                  - Install the Debian package"
 	@echo ""
 	@echo "------------------------------------------------------------"
 	@echo "Example:"
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check example test clean fresh fresh_docs clean_docs
+.PHONY: all dirs format tidy check example test clean fresh fresh_docs clean_docs deb install help

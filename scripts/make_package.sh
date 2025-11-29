@@ -6,7 +6,7 @@
 set -euo pipefail  # Exit on error, unset variables are errors, fail on pipe errors
 
 PROJECT_NAME="LogX"
-BUILD_DIR="build"
+BUILD_DIR="../build"
 
 echo "🧹 Cleaning previous build..."
 rm -rf "$BUILD_DIR"

@@ -7,6 +7,7 @@ This guide contains easy-to-understand examples explaining how to use each and e
 1. [LogX Integration](#logx-integration)
     - [Understanding LogX configuration](#understanding-logx-configuration)
     - [Default configuration](#logx-integration---default-configuration)
+    - [Overriding default configuration](#logx-integration-overriding-default-configuration)
     - [Passing configuration](#logx-integration---passing-configuration)
     - [Parsing configuration from default file](#logx-integration---parsing-configuration-from-custom-file)
     - [Parsing configuration from custom file](#logx-integration---parsing-configuration-from-default-file)
@@ -30,6 +31,7 @@ This guide contains easy-to-understand examples explaining how to use each and e
     - [Pause & Resume](#pause-&-resume)
     - [Auto scope timer](#auto-scope-timer)
 
+5. 
 
 ## Logx Integration
 
@@ -58,12 +60,9 @@ typedef struct
 ### LogX Integration - Default Configuration
 
 - When `logx_create()` is called with NULL, LogX will try to look for configuration information in the following order until success:
-    1. If `LOGX_CFG_FILE_PATH` macro is declared, tries to fetch configuration settings from that file.
+    1. If `LOGX_CFG_FILE_PATH` MACRO is declared, tries to fetch configuration settings from that file.
     2. Looks for `./logx_cfg.yml`, `./logx_cfg.yaml` or `./logx_cfg.json` (in the same order)
     3. Sets Default configuration.
-
-- The default configurations are defined in `./include/logx/logx_defaults.h`. Click [here](https://github.com/Kulasekaran-148/LogX/blob/main/include/logx/logx_defaults.h) to view the default MACROS.
-- In case, you want to override these defaults, you can simply re-declare the macro that you need to change in your project source (without having to modify the library source). Please keep in mind that you need to declare the macro before the `#include <logx/logx.h>` statement in your code.
 
 ```C
 #include <stdio.h>
@@ -91,6 +90,30 @@ int main() {
 ![basic_example_default_settings](./assets/images/basic_example_default_settings.png)
 
 ---
+
+### LogX Integration - Overriding Default Configuration
+
+- LogX provides you the flexibility to override the default logger configurations defined in the [include/logx/logx_defaults.h](https://github.com/Kulasekaran-148/LogX/blob/main/include/logx/logx_defaults.h)
+
+```c
+#define LOGX_DEFAULT_CFG_NAME                       "LogX_Default"
+#define LOGX_DEFAULT_CFG_LOGFILE_PATH               "./logx.log"
+#define LOGX_DEFAULT_CFG_CONSOLE_LEVEL              LOGX_LEVEL_TRACE
+#define LOGX_DEFAULT_CFG_FILE_LEVEL                 LOGX_LEVEL_TRACE
+#define LOGX_DEFAULT_CFG_ENABLE_CONSOLE_LOGGING     true
+#define LOGX_DEFAULT_CFG_ENABLE_FILE_LOGGING        true
+#define LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING     true
+#define LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION       true
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE            LOGX_ROTATE_BY_SIZE
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB         10
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS 3
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL  1
+#define LOGX_DEFAULT_CFG_BANNER_PATTERN             "="
+#define LOGX_DEFAULT_CFG_PRINT_CONFIG               true
+```
+
+- All the abvoe MACROS are guarded with `#ifndef` which allows you to override them from your project code.
+- Only thing you need to do is to make sure you declare the MACRO you want to change before the line `#include <logx/logx.h>`.
 
 ### LogX Integration - Passing configuration
 
@@ -138,7 +161,7 @@ int main()
 ### LogX Integration - Parsing configuration from default file
 
 - When `logx_create()` is called with NULL, LogX will try to look for configuration information in the following order until success:
-    1. If `LOGX_CFG_FILE_PATH` macro is declared, tries to fetch information from that file.
+    1. If `LOGX_CFG_FILE_PATH` MACRO is declared, tries to fetch information from that file.
     2. Looks for `./logx_cfg.yml`, `./logx_cfg.yaml` or `./logx_cfg.json` (in the same order)
     3. Sets Default configuration.
 
@@ -169,7 +192,7 @@ int main()
 ### LogX Integration - Parsing configuration from custom file
 
 - When `logx_create()` is called with NULL, LogX will try to look for configuration information in the following order until success:
-    1. If `LOGX_CFG_FILE_PATH` macro is declared, tries to fetch information from that file.
+    1. If `LOGX_CFG_FILE_PATH` MACRO is declared, tries to fetch information from that file.
     2. Looks for `./logx_cfg.yml`, `./logx_cfg.yaml` or `./logx_cfg.json` (in the same order)
     3. Sets Default configuration.
 

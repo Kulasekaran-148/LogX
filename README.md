@@ -52,7 +52,7 @@
 - Logging mode switch
 - Logfile compression
 - Multiple file logging
-- syslog support
+- Syslog support
 
 ---
 
@@ -89,9 +89,7 @@ sudo apt update && sudo apt install liblogx-x.x.x.deb -y
 ```bash
 git clone https://github.com/Kulasekaran-148/LogX.git
 cd LogX
-chmod +x make_package.sh
-./make_package.sh
-sudo apt install ./build/liblogx-.x.x.deb
+make install # This will automaitcally trigger a build and install the package
 ```
 
 - After installation, you can refer to the [Quick Start](#quick-start) example on how to integrate LogX with your project.
