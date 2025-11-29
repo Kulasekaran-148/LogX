@@ -168,7 +168,7 @@ fresh_docs: clean_docs
 	@echo "✅ Docs generation complete."
 
 # Run Debian package making script
-deb:
+deb: clean
 	@./scripts/make_package.sh
 
 # Install the deb package
