@@ -70,7 +70,7 @@ typedef struct {
     logx_level_t      file_level;             /* level threshold for file */
     int               enable_console_logging; /* 0/1 */
     int               enable_file_logging;    /* 0/1 */
-    int               enabled_colored_logs;   /* 0/1 */
+    int               enable_colored_logs;    /* 0/1 */
     int               use_tty_detection; /* if 1, detect isatty and disable colors for non-ttys */
     logx_rotate_cfg_t rotate;            /* rotation options */
     const char       *banner_pattern;    /* Banner pattern */
@@ -104,16 +104,45 @@ logx_t *logx_create(const logx_cfg_t *cfg);
 /* Close and free resources. Safe to call multiple times. */
 void logx_destroy(logx_t *logger);
 
-/* Change levels at runtime. */
-void logx_set_console_level(logx_t *logger, logx_level_t level);
-void logx_set_file_level(logx_t *logger, logx_level_t level);
+/* Enable/Disable console logging */
+void logx_enable_console_logging(logx_t *logger);
+void logx_disable_console_logging(logx_t *logger);
 
-/* Toggle outputs */
-void logx_set_console_logging(logx_t *logger, int enable);
-void logx_set_file_logging(logx_t *logger, int enable);
+/* Enable/Disable file logging */
+void logx_enable_file_logging(logx_t *logger);
+void logx_disable_file_logging(logx_t *logger);
+
+/* Set log levels */
+void logx_set_console_logging_level(logx_t *logger, logx_level_t level);
+void logx_set_file_logging_level(logx_t *logger, logx_level_t level);
+
+/* Enable/Disable colored logging */
+void logx_enable_colored_logging(logx_t *logger);
+void logx_disable_colored_logging(logx_t *logger);
+
+/* Enable/Disable TTY detection */
+void logx_enable_tty_detection(logx_t *logger);
+void logx_disable_tty_detection(logx_t *logger);
+
+/* Enable/Disable print config */
+void logx_enable_print_config(logx_t *logger);
+void logx_disable_print_config(logx_t *logger);
+
+/* ===== Log rotation User APIs ===== */
+
+/* Set log rotation type */
+void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type);
 
 /* Force an immediate rotation (useful for admin triggers) */
 int logx_rotate_now(logx_t *logger);
+
+/* Set log file max size */
+void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb);
+
+/* Set log file max number of backups */
+void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups);
+
+/* ===== Timer User APIs ===== */
 
 /* Creates or starts a logx timer */
 logx_timer_t *logx_timer_start(logx_t *logger, const char *name);
@@ -126,6 +155,8 @@ void logx_timer_pause(logx_t *logger, const char *name);
 
 /* Resumes a logx timer */
 void logx_timer_resume(logx_t *logger, const char *name);
+
+/* ===== Helper functions ===== */
 
 /* Helper functions - LogX will internally call */
 /* Log a message. file/func/line are helpers provided by macros below. */

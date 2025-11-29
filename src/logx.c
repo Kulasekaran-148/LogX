@@ -349,7 +349,7 @@ static void logx_set_default_cfg(logx_cfg_t *cfg) {
     cfg->file_level             = LOGX_DEFAULT_CFG_FILE_LEVEL;
     cfg->enable_console_logging = LOGX_DEFAULT_CFG_ENABLE_CONSOLE_LOGGING;
     cfg->enable_file_logging    = LOGX_DEFAULT_CFG_ENABLE_FILE_LOGGING;
-    cfg->enabled_colored_logs   = LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
+    cfg->enable_colored_logs    = LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
     cfg->use_tty_detection      = LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION;
     cfg->rotate.type            = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     cfg->rotate.size_mb         = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
@@ -428,8 +428,8 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
     ival                     = get_bool(root, LOGX_KEY_ENABLE_FILE_LOGGING);
     cfg->enable_file_logging = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_FILE_LOGGING;
 
-    ival                      = get_bool(root, LOGX_KEY_ENABLED_COLORED_LOGS);
-    cfg->enabled_colored_logs = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
+    ival                     = get_bool(root, LOGX_KEY_enable_colored_logs);
+    cfg->enable_colored_logs = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
 
     ival                   = get_bool(root, LOGX_KEY_USE_TTY_DETECTION);
     cfg->use_tty_detection = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION;
@@ -608,8 +608,8 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
                 else if (strcmp(key, LOGX_KEY_ENABLE_FILE_LOGGING) == 0)
                     cfg->enable_file_logging =
                         (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
-                else if (strcmp(key, LOGX_KEY_ENABLED_COLORED_LOGS) == 0)
-                    cfg->enabled_colored_logs =
+                else if (strcmp(key, LOGX_KEY_enable_colored_logs) == 0)
+                    cfg->enable_colored_logs =
                         (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_USE_TTY_DETECTION) == 0)
                     cfg->use_tty_detection =
@@ -784,7 +784,7 @@ static void logx_print_config(logx_t *l) {
     fprintf(stderr, "[LogX] File Logging                : %s\n",
             logx_check(l->cfg.enable_file_logging));
     fprintf(stderr, "[LogX] Colored Logs                : %s\n",
-            logx_check(l->cfg.enabled_colored_logs));
+            logx_check(l->cfg.enable_colored_logs));
     fprintf(stderr, "[LogX] TTY Detection               : %s\n",
             logx_check(l->cfg.use_tty_detection));
     fprintf(stderr, "[LogX] Log Rotate Type             : %s\n",
@@ -979,7 +979,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     vsnprintf(payload, sizeof(payload), fmt, ap);
     va_end(ap);
 
-    int         use_color = logger->cfg.enabled_colored_logs;
+    int         use_color = logger->cfg.enable_colored_logs;
     const char *c         = COLOR_RESET;
 
     if (use_color) {

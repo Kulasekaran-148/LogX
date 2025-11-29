@@ -31,7 +31,22 @@ This guide contains easy-to-understand examples explaining how to use each and e
     - [Pause & Resume](#pause-&-resume)
     - [Auto scope timer](#auto-scope-timer)
 
-5. 
+5. [LogX - User APIs](#logx---user-apis)
+    - [LogX Create](#logx-api---create)
+    - [LogX Destroy](#logx-api---destroy)
+    - [Enabling/Disabling console logging](#logx-api---enablingdisabling-console-logging)
+    - [Setting console log leve](#logx-api---setting-console-log-level)
+    - [Enabling/Disabling file logging](#logx-api---enablingdisabling-file-logging)
+    - [Setting file log level](#logx-api---setting-file-log-level)
+    - [Enabling/Disabling colored logging](#logx-api---enablingdisabling-colored-logging)
+    - [Enabling/Disabling TTY detection](#logx-api---enablingdisabling-tty-detectiona)
+    - [Setting log rotate type](#logx-api---setting-log-rotate-type)
+    - [Forcing a log rotation](#logx-api---forcing-a-log-rotation)
+    - [Setting maximum size of logfile](#logx-api---setting-max-size-of-log-files)
+    - [Setting number of logfile backups](#logx-api---setting-number-of-logfile-backups)
+    - [Enabling/Disabling print config](#logx-api---enablingdisabling-print-config)
+
+    
 
 ## Logx Integration
 
@@ -48,7 +63,7 @@ typedef struct
     logx_level_t      file_level;             /* level threshold for file logging */
     int               enable_console_logging; /* Enable / Disable console logging */
     int               enable_file_logging;    /* Enable / Disable file logging */
-    int               enabled_colored_logs;   /* Enable / Disable ANSI colored logs (Only visible in console logs) */
+    int               enable_colored_logs;   /* Enable / Disable ANSI colored logs (Only visible in console logs) */
     int               use_tty_detection;      /* Auto Enable / Disable colored logs based on TTY detection */
     logx_rotate_cfg_t rotate;                 /* Control Log Rotation */
     const char       *banner_pattern;         /* Configure Banner Pattern (Used in LOGX_BANNER() */
@@ -131,7 +146,7 @@ int main()
     cfg.enable_console_logging = 1;
     cfg.enable_file_logging    = 1;
     cfg.file_path              = "./basic_example_passing_configuration.log";
-    cfg.enabled_colored_logs   = 1;
+    cfg.enable_colored_logs   = 1;
     cfg.use_tty_detection      = 1;
     cfg.console_level          = LOGX_LEVEL_TRACE;
     cfg.file_level             = LOGX_LEVEL_TRACE;
@@ -308,9 +323,9 @@ LOGX_BANNER(logger, "This is a banner message and CYAN in color");
 
 ## LogX - Log Rotation
 
-- LogX comes in handy with log rotation feature, so that you don't need to worry about your log file filling up the space
-- LogX let's you control the rotation of log files based on `SIZE` or `DATE`
-- LogX also let's you control the number of backups to be maintained.
+- LogX comes in handy with log rotation feature, so that you don't need to worry about your log file(s) filling up the space
+- LogX let's you control the rotation of log files based on `SIZE` or `DATE`. Check out [Setting log rotate type](#logx-api---setting-log-rotate-type)
+- LogX also let's you control the number of backups to be maintained. Check out [Setting number of logfile backups](#logx-api---setting-number-of-logfile-backups)
 
 ```c
 typedef struct
@@ -348,7 +363,7 @@ cfg.rotate.max_backups = 5; // Number of backups to maintain
 - For example, consider your log file is `example.log`.
 - When logfile exceeds the size, it gets renamed as `example.log` --> `example.log.1`
 - Again when size exceeds, `example.log.1` --> `example.log.2`
-- This continues until there are `cfg.rotate.max_backups` number of log files are present. Now, when size exceeds again, the oldest of the log file gets deleted.
+- This continues until `cfg.rotate.max_backups` number of log files are present. Now, when size exceeds again, the oldest of the log file gets deleted.
 
 ---
 
@@ -456,5 +471,224 @@ void auto_timer(logx_t *logger, int wait_time)
 ```
 
 ![auto_timer.png](./assets/images/auto_timer.png)
+
+---
+
+## LogX - User APIs
+
+Users can call the following APIs from their project code during runtime to modify the behavior of the LogX instances.
+
+### LogX API - Create
+
+This is the first and foremost function that user should use to create an instance of LogX. Check out [LogX Integration](#logx-integration) section for more details regarding logx instance creation
+
+```c
+logx_t *logger = logx_create(NULL); // Default configuration
+if (!logger) {
+    fprintf(stderr, "LogX instance creation failed\n");
+    return -1;
+}
+```
+
+---
+
+### LogX API - Destroy
+
+This is the final function that user should call before exiting their application. When `logx_destroy(logger)` is called, it will gracefully close pointers and descriptors and frees the memory that was allocated to the instance
+
+```c
+logx_destory(logger);
+```
+
+---
+
+### LogX API - Enabling/Disabling console logging
+
+Let's the user enable or diable the console logging during runtime.
+
+```c
+// enable console logging
+logx_enable_console_logging(logger);
+
+// disable console logging
+logx_disable_console_logging(logger);
+```
+
+---
+
+### LogX API - Setting console log level
+
+Let's the user modify the log level of console logging to any of the following:
+
+```c
+typedef enum {
+    LOGX_LEVEL_TRACE = 0,
+    LOGX_LEVEL_DEBUG,
+    LOGX_LEVEL_BANNER,
+    LOGX_LEVEL_INFO,
+    LOGX_LEVEL_WARN,
+    LOGX_LEVEL_ERROR,
+    LOGX_LEVEL_FATAL,
+    LOGX_LEVEL_OFF
+} logx_level_t;
+```
+
+```c
+// set console logging level to WARN. This would allow only `WARN` and higher logx levels like `ERROR` and `FATAL` to get printed onto the console
+logx_set_console_logging_level(logger, LOGX_LEVEL_WARN);
+```
+
+---
+
+### LogX API - Enabling/Disabling file logging
+
+Let's the user enable or diable the file logging during runtime.
+
+```c
+// enable console logging
+logx_enable_file_logging(logger);
+
+// disable console logging
+logx_disable_file_logging(logger);
+```
+
+---
+
+### LogX API - Setting file log level
+
+Let's the user modify the log level of file logging to any of the following:
+
+```c
+typedef enum {
+    LOGX_LEVEL_TRACE = 0,
+    LOGX_LEVEL_DEBUG,
+    LOGX_LEVEL_BANNER,
+    LOGX_LEVEL_INFO,
+    LOGX_LEVEL_WARN,
+    LOGX_LEVEL_ERROR,
+    LOGX_LEVEL_FATAL,
+    LOGX_LEVEL_OFF
+} logx_level_t;
+```
+
+```c
+// set file logging level to WARN. This would allow only `WARN` and higher logx levels like `ERROR` and `FATAL` to get printed onto the file
+logx_set_file_logging_level(logger, LOGX_LEVEL_WARN);
+```
+
+---
+
+### LogX API - Enabling/Disabling colored logging
+
+Let's users enable or disable colored logging
+
+*NOTE*: This is automatically set if TTY detection is enabled.
+
+```c
+// enable colored logging
+void logx_enable_colored_logging(logger);
+
+// disable colored logging
+void logx_disable_colored_logging(logger);
+```
+
+---
+
+### LogX API - Enabling/Disabling tty detection
+
+```c
+// enable tty detection
+logx_enable_tty_detection(logger);
+
+// disable tty detection
+logx_disable_tty_detection(logger);
+```
+---
+
+### LogX API - Setting log rotate type
+
+Let's users set the log file rotation criteria to any of the following:
+
+```c
+/* Rotation type */
+typedef enum {
+    LOGX_ROTATE_NONE = 0,
+    LOGX_ROTATE_BY_SIZE,
+    LOGX_ROTATE_BY_DATE
+} logx_rotate_type_t;
+```
+
+```c
+// rotate log files by size. This works with `cfg.rotate.size_mbytes` parameter in which user will specify the max size in mb that the log files can reach before getting rotated
+logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_SIZE);
+
+// rotate log files by date. This works with `cfg.rotate.daily_interval` parameter in which user will spcify the number of days once the log files should get rotated
+logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_DATE);
+```
+
+---
+
+### LogX API - Setting Max Size of Log files
+
+Let's users set the maximum size (in mbytes) for the log files. When log files reach this limit and `cfg.rotate.type` is `LOGX_ROTATE_BY_SIZE`, it will trigger log rotation.
+
+```c
+// set the max size as 15mb
+logx_set_log_file_size_mb(logger, 15);
+```
+
+---
+
+### LogX API - Setting Rotation Interval in Days
+
+Let's users set the number of days once the log files should get rotated. This param will be considered only when `cfg.rotate.type` is `LOX_ROTATE_BY_DATE`
+
+```c
+```
+
+---
+
+### LogX API - Forcing a log rotation
+
+Let's users trigger a log rotation on-demand even if the base rotation criteria is not met.
+
+```c
+logx_rotate_now(logger);
+```
+
+---
+
+### LogX API - Setting number of logfile backups
+
+Let's users specify the number of logfile backups to maintain
+
+*NOTE*:
+    - If number of backups = 0, then when the rotation gets triggered, the main logfile simply gets truncated and no rotation occurs
+    - Consider this:
+        - Number of backups = 6 initially
+        - Already `logfile.log`, `logfile.log.1`, `logfile.log.2`, `logfile.log.3`, `logfile.log.4` exists
+        - Now, the user sets number of backups = 3
+        - When the next trigger happens, beware of the following catches:
+            - `logfile.log.2` --> `logfile.log.3` (The already existing `logfile.log.3` will get replaced)
+            - `logfile.log.4` will still exist. It won't get auto-deleted
+
+```c
+// setting number of logfile backups as 5
+logx_set_num_of_logfile_backups(logger, 5);
+```
+
+---
+
+### LogX API - Enabling/Disabling print config
+
+Let's users enable or disable the inital print of LogX configuration that gets printed onto the console. (It's better to have it enabled to make sure of the logx configuration that's gonna get used in your application)
+
+```c
+// enable print config
+logx_enable_print_config(logger);
+
+// disable print config
+logx_disable_print_config(logger);
+```
 
 ---
