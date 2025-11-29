@@ -68,6 +68,10 @@ examples/logs
 test/binaries
 test/logs
 
+# benchmark artifacts
+benchmarks/binaries
+benchmarks/logs
+
 # build artifacts
 build/
 
