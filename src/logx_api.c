@@ -2,7 +2,9 @@
 
 #include "../include/logx/logx.h"
 
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 /**
  * @brief Changes the console log level
@@ -306,4 +308,60 @@ void logx_disable_print_config(logx_t *logger) {
     pthread_mutex_lock(&logger->lock);
     logger->cfg.print_config = 0;
     pthread_mutex_unlock(&logger->lock);
+}
+
+/**
+ * @brief Converts a 64-bit integer to a binary string with grouped nibbles (4 bits) using
+ * thread-local
+ *
+ * @param value 64-bit integer value to convert
+ * @return const char* Pointer to the thread-local binary string representation
+ */
+const char *logx_bin_str64_grouped_tls(uint64_t value) {
+    // 8 rotating buffers, each large enough for grouped 64-bit binary + NUL
+    enum {
+        BUF_COUNT = 8,
+        BUF_SIZE  = 128
+    };
+
+    static _Thread_local char bufs[BUF_COUNT][BUF_SIZE];
+    static _Thread_local int  idx = 0;
+
+    char *out = bufs[idx];
+    idx       = (idx + 1) % BUF_COUNT;
+
+    char tmp[64 + 16];
+    int  pos = 0;
+
+    // Build full 64-bit binary with nibble spaces
+    for (int i = 63; i >= 0; --i) {
+        tmp[pos++] = (value & (1ULL << i)) ? '1' : '0';
+        if (i % 4 == 0 && i != 0)
+            tmp[pos++] = ' ';
+    }
+    tmp[pos] = '\0';
+
+    // Find first '1'
+    int first_one = -1;
+    for (int i = 0; tmp[i]; ++i) {
+        if (tmp[i] == '1') {
+            first_one = i;
+            break;
+        }
+    }
+
+    // All zero → return one nibble
+    if (first_one == -1) {
+        strcpy(out, "0000");
+        return out;
+    }
+
+    // Snap to nibble boundary
+    while (first_one > 0 && tmp[first_one - 1] != ' ') first_one--;
+
+    if (tmp[first_one] == ' ')
+        first_one++;
+
+    strcpy(out, tmp + first_one);
+    return out;
 }

@@ -31,7 +31,7 @@ This guide contains easy-to-understand examples explaining how to use each and e
     - [Pause & Resume](#pause-&-resume)
     - [Auto scope timer](#auto-scope-timer)
 
-5. [LogX - User APIs](#logx---user-apis)
+5. [LogX - Configuration APIs](#logx---configuration-apis)
     - [LogX Create](#logx-api---create)
     - [LogX Destroy](#logx-api---destroy)
     - [Enabling/Disabling console logging](#logx-api---enablingdisabling-console-logging)
@@ -46,6 +46,8 @@ This guide contains easy-to-understand examples explaining how to use each and e
     - [Setting number of logfile backups](#logx-api---setting-number-of-logfile-backups)
     - [Enabling/Disabling print config](#logx-api---enablingdisabling-print-config)
 
+6. [LogX - Utility APIs](#logx---utility-apis)
+    - [Representing values in binary](#logx---binary-string)
     
 
 ## Logx Integration
@@ -474,7 +476,7 @@ void auto_timer(logx_t *logger, int wait_time)
 
 ---
 
-## LogX - User APIs
+## LogX - Configuration APIs
 
 Users can call the following APIs from their project code during runtime to modify the behavior of the LogX instances.
 
@@ -690,5 +692,27 @@ logx_enable_print_config(logger);
 // disable print config
 logx_disable_print_config(logger);
 ```
+
+---
+
+## LogX - Utility APIs
+
+### LogX - Binary String
+
+Ever been in a situation where you wanted to look at the individual bits of a value but felt too lazy to write a separate function for it. Worry no more, LogX provides you a simple MACRO `LOGX_BIN_STR(val)` to help you with that.
+
+```c
+    LOGX_DEBUG(logger, "Binary representation of %d is %s", 10, LOGX_BIN_STR(10));
+    LOGX_DEBUG(logger, "Binary representation of %u is %s", 255u, LOGX_BIN_STR(255u));
+    LOGX_DEBUG(logger, "Binary representation of %d is %s", -128, LOGX_BIN_STR(-128));
+    LOGX_DEBUG(logger, "Binary representation of %u is %s", 65535u, LOGX_BIN_STR(65535u));
+    LOGX_DEBUG(logger, "Binary representation of %d is %s", -32768, LOGX_BIN_STR(-32768));
+    LOGX_DEBUG(logger, "Binary representation of %u is %s", 4294967295u, LOGX_BIN_STR(4294967295u));
+    LOGX_DEBUG(logger, "Binary representation of %d is %s", -2147483648, LOGX_BIN_STR(-2147483648));
+```
+
+![binary_string](./assets/images/binary_string.png)
+
+Noticed how it automatically prints the output as nibbles... Easier on the eyes 👀
 
 ---

@@ -955,9 +955,10 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     pthread_mutex_lock(&logger->lock);
 
     /* Check thresholds */
-    int write_console = level != LOGX_LEVEL_OFF && logger->cfg.enable_console_logging && level >= logger->cfg.console_level;
-    int write_file =
-        level != LOGX_LEVEL_OFF && logger->cfg.enable_file_logging && level >= logger->cfg.file_level && logger->fp;
+    int write_console = level != LOGX_LEVEL_OFF && logger->cfg.enable_console_logging &&
+                        level >= logger->cfg.console_level;
+    int write_file = level != LOGX_LEVEL_OFF && logger->cfg.enable_file_logging &&
+                     level >= logger->cfg.file_level && logger->fp;
 
     if (!write_console && !write_file) {
         pthread_mutex_unlock(&logger->lock);

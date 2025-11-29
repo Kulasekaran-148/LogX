@@ -198,6 +198,12 @@ void logx_timer_auto_cleanup(logx_timer_t **t);
     logx_timer_t *__attribute__((cleanup(logx_timer_auto_cleanup))) \
     __logx_auto_timer_##__COUNTER__ = logx_timer_start(logger, name)
 
+/* Helper: Converts a 64-bit integer to a binary string with grouped nibbles (4 bits) */
+const char *logx_bin_str64_grouped_tls(uint64_t value);
+
+/* Helper: Binary string conversion macros */
+#define LOGX_BIN_STR(v) logx_bin_str64_grouped_tls((uint64_t)(v))
+
 /* Macros for easy logging (these expand to a call that includes file/func/line) */
 #define LOGX_TRACE(logger, fmt, ...) \
     logx_log((logger), LOGX_LEVEL_TRACE, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)
