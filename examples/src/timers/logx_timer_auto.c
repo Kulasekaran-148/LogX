@@ -50,7 +50,7 @@ int main(void)
     cfg.enable_console_logging = 1;
     cfg.enable_file_logging    = 1;
     cfg.file_path              = "./logx_timer_auto.log";
-    cfg.enabled_colored_logs   = 1;
+    cfg.enable_colored_logs   = 1;
     cfg.use_tty_detection      = 1;
     cfg.console_level          = LOGX_LEVEL_TRACE;
     cfg.file_level             = LOGX_LEVEL_TRACE;

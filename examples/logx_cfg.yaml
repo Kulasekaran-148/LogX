@@ -12,7 +12,7 @@ file_path: "./logs/app.log"
 # ---- Log Output Control ----
 enable_console_logging: true
 enable_file_logging: true
-enabled_colored_logs: true
+enable_colored_logs: true
 use_tty_detection: true
 print_config: 1
 

@@ -34,7 +34,7 @@ extern const char *LOGX_KEY_NAME;
 extern const char *LOGX_KEY_FILE_PATH;
 extern const char *LOGX_KEY_ENABLE_CONSOLE_LOGGING;
 extern const char *LOGX_KEY_ENABLE_FILE_LOGGING;
-extern const char *LOGX_KEY_ENABLED_COLORED_LOGS;
+extern const char *LOGX_KEY_enable_colored_logs;
 extern const char *LOGX_KEY_USE_TTY_DETECTION;
 extern const char *LOGX_KEY_BANNER_PATTERN;
 extern const char *LOGX_KEY_PRINT_CONFIG;

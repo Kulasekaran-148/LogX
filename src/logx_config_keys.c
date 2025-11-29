@@ -18,7 +18,7 @@ const char *LOGX_KEY_NAME                   = "name";
 const char *LOGX_KEY_FILE_PATH              = "file_path";
 const char *LOGX_KEY_ENABLE_CONSOLE_LOGGING = "enable_console_logging";
 const char *LOGX_KEY_ENABLE_FILE_LOGGING    = "enable_file_logging";
-const char *LOGX_KEY_ENABLED_COLORED_LOGS   = "enabled_colored_logs";
+const char *LOGX_KEY_enable_colored_logs    = "enable_colored_logs";
 const char *LOGX_KEY_USE_TTY_DETECTION      = "use_tty_detection";
 const char *LOGX_KEY_BANNER_PATTERN         = "banner_pattern";
 const char *LOGX_KEY_PRINT_CONFIG           = "print_config";
@@ -37,7 +37,7 @@ const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
     {             "file_path",                 "Log file output path"},
     {"enable_console_logging",     "Enable or disable console output"},
     {   "enable_file_logging",        "Enable or disable file output"},
-    {  "enabled_colored_logs",       "Enable or disable colored logs"},
+    {   "enable_colored_logs",       "Enable or disable colored logs"},
     {     "use_tty_detection",     "Enable TTY detection for console"},
     {        "banner_pattern",  "Banner header pattern for log start"},
     {         "console_level",                    "Console log level"},
