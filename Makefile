@@ -41,6 +41,19 @@ TEST_SRC := $(shell [ -d $(TEST_SRC_DIR) ] && find $(TEST_SRC_DIR) -name "*.c")
 #   tests/src/basic/foo.c  →  tests/binaries/basic/foo
 TEST_BINS := $(patsubst $(TEST_SRC_DIR)/%.c,$(TEST_BIN_ROOT)/%,$(TEST_SRC))
 
+# ---- Benchmarks ----
+BENCHMARKS_DIR    	:= benchmarks
+BENCHMARKS_SRC_DIR 	:= $(BENCHMARKS_DIR)/src
+BENCHMARKS_BIN_ROOT 	:= $(BENCHMARKS_DIR)/binaries
+BENCHMARKS_LOG_DIR 	:= $(BENCHMARKS_DIR)/logs
+
+# Find all example source files recursively
+BENCHMARKS_SRC := $(shell [ -d $(BENCHMARKS_SRC_DIR) ] && find $(BENCHMARKS_SRC_DIR) -name "*.c")
+
+# Compute corresponding binary paths:
+#   benchmarks/src/basic/foo.c  →  benchmarks/binaries/basic/foo
+BENCHMARKS_BINS := $(patsubst $(BENCHMARKS_SRC_DIR)/%.c,$(BENCHMARKS_BIN_ROOT)/%,$(BENCHMARKS_SRC))
+
 # ---- Target ----
 TARGET			:= logx
 TARGET_STATIC 	:= $(BUILD_DIR)/lib$(TARGET).a
@@ -116,6 +129,15 @@ tidy:
 	@$(TIDY) $(SRC_FILES) -- -I$(INC_DIR)
 	@echo "✅ Clang-tidy check complete."
 
+# ---- Examples ----
+example: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(EXAMPLE_BINS)
+	@echo "✅ Built examples → $(EXAMPLE_BIN_ROOT)"
+
+# Ensure binary directories exist (auto-mkdir)
+$(EXAMPLE_BIN_ROOT)/%: $(EXAMPLE_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
+
 # ---- Tests ----
 test: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(TEST_BINS)
 	@echo "✅ Built tests → $(TEST_BIN_ROOT)"
@@ -125,12 +147,12 @@ $(TEST_BIN_ROOT)/%: $(TEST_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
-# ---- Examples ----
-example: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(EXAMPLE_BINS)
-	@echo "✅ Built examples → $(EXAMPLE_BIN_ROOT)"
+# ---- Benchmarks ----
+benchmark: dirs $(TARGET_STATIC) $(TARGET_SHARED) $(BENCHMARKS_BINS)
+	@echo "✅ Built benchmarks → $(BENCHMARKS_BIN_ROOT)"
 
 # Ensure binary directories exist (auto-mkdir)
-$(EXAMPLE_BIN_ROOT)/%: $(EXAMPLE_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
+$(BENCHMARKS_BIN_ROOT)/%: $(BENCHMARKS_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SHARED)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) -o $@
 
@@ -192,6 +214,7 @@ help:
 	@echo "  make tidy                     - Run clang-tidy static analysis"
 	@echo "  make example				   - Build examples"
 	@echo "  make test                     - Build tests"
+	@echo "  make benchmark                - Build benchmarks"
 	@echo "  make clean_docs               - Clean the doxygen docs folder"
 	@echo "  make fresh_docs               - Clean and build the doxygen docs folder"
 	@echo "  make help                     - Show this help message"
@@ -203,4 +226,4 @@ help:
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check example test clean fresh fresh_docs clean_docs deb install help
+.PHONY: all dirs format tidy check example test benchmark clean fresh fresh_docs clean_docs deb install help

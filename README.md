@@ -14,6 +14,7 @@
 - [Installation](#installation)
 - [Changelog](#changelog)
 - [Quick Start](#quick-start)
+- [Benchmarks](#benchmarks)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
@@ -69,6 +70,8 @@ sudo apt install cmake libyaml-dev libcjson-dev -y
   - Dependencies need to be installed manually before building from source
   - Dependencies are auto installed when installing from Releases
 
+---
+
 ## Installation
 
 ### From Releases
@@ -98,6 +101,8 @@ make install # This will automaitcally trigger a build and install the package
 ```bash
 gcc main.c -o main -llogx
 ```
+
+---
 
 ## Generating Doxygen Documentation
 
@@ -132,8 +137,12 @@ Once the doxygen generation is complete, you can open `./docs/html/index.html` u
 
 Go to `./docs/latex/` and run make to generate the pdf documentation. It will be generated as `refman.pdf`
 
+---
+
 ## Changelog
 - View [changelog](./CHANGELOG.md)
+
+---
 
 ## Quick Start
 
@@ -166,6 +175,35 @@ int main() {
 
 - Click [here](./GUIDE.md) to view the full guide on LogX's features, how-to-use with neat little examples.
 
+---
+
+## Benchmarks
+
+| Component            | Details                                                             |
+| -------------------- | ------------------------------------------------------------------- |
+| **OS**               | Ubuntu 22.04.5 LTS (Jammy)                                          |
+| **Kernel**           | 6.8.0-87-generic                                                    |
+| **CPU**              | AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx (4 cores / 8 threads) |
+| **CPU Architecture** | x86_64 (Supports 32-bit & 64-bit mode)                              |
+| **CPU Frequency**    | 1.40 GHz (min) — 2.10 GHz (max), Boost enabled                      |
+| **Cache**            | L1: 128 KiB (data), 256 KiB (instruction) • L2: 2 MiB • L3: 4 MiB   |
+| **Virtualization**   | AMD-V                                                               |
+| **Memory (RAM)**     | 15 GiB total (≈4.0 GiB used, 8.1 GiB free, 10 GiB available)        |
+| **Swap**             | 6.6 GiB                                                             |
+| **GPU**              | AMD/ATI Picasso/Raven 2 — Radeon Vega Mobile Series                 |
+| **NUMA Nodes**       | 1 (CPUs 0–7)                                                        |
+
+
+The following table shows approximate benchmark results for printing different numbers of log lines in various configurations.  
+(All values are indicative and depend on system performance.)
+
+| Sl. No | Console Log | File Log | Num. of Log Lines | LogX Time | Other Logger Time |
+|--------|-------------|----------|--------------------|-----------|--------------------|
+| 1      | Enabled     | Disabled | 100,000            | ~12s      | ~4s                |
+
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -182,9 +220,13 @@ Contributions are welcome! Please follow these steps:
    git push origin feature/my-feature
 5. Open a Pull Request
 
+---
+
 ## License
 
 This project is licensed under the **MIT License**. See [LICENSE](https://github.com/Kulasekaran-148/LogX/blob/main/LICENSE) for details.
+
+---
 
 ## Contact
 
