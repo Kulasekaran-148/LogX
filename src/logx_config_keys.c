@@ -29,7 +29,7 @@ const char *LOGX_KEY_FILE_LEVEL    = "file_level";
 const char *LOGX_KEY_ROTATE_TYPE           = "rotate_type";
 const char *LOGX_KEY_ROTATE_MAX_MBYTES     = "rotate_max_Mbytes";
 const char *LOGX_KEY_ROTATE_MAX_BACKUPS    = "rotate_max_backups";
-const char *LOGX_KEY_ROTATE_DAILY_INTERVAL = "rotate_daily_interval";
+const char *LOGX_KEY_ROTATE_INTERVAL_DAYS = "rotate_interval_days";
 
 /* Array of known keys for validation and debugging */
 const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
@@ -45,7 +45,7 @@ const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
     {           "rotate_type",   "Rotation type (BY_SIZE or BY_DATE)"},
     {     "rotate_max_Mbytes",    "Maximum file size before rotation"},
     {    "rotate_max_backups",      "Maximum number of rotated files"},
-    { "rotate_daily_interval", "Interval (in days) for date rotation"},
+    { "rotate_interval_days", "Interval (in days) for date rotation"},
     {          "print_config",       "Enable or disable config print"},
 };
 

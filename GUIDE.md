@@ -124,7 +124,7 @@ int main() {
 #define LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE            LOGX_ROTATE_BY_SIZE
 #define LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB         10
 #define LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS 3
-#define LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL  1
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS  1
 #define LOGX_DEFAULT_CFG_BANNER_PATTERN             "="
 #define LOGX_DEFAULT_CFG_PRINT_CONFIG               true
 ```
@@ -335,7 +335,7 @@ typedef struct
     logx_rotate_type_t type;            /* type of rotation */
     size_t             size_mb;       /* used when tyep == LOGX_ROTATE_BY_SIZE */
     int                max_backups;     /* number of backup files to keep (0 = no backups) */
-    int                daily_interval;  /* days between rotations when type = LOGX_ROTATE_BY_DATE (1 = daily) */
+    int                interval_days;  /* days between rotations when type = LOGX_ROTATE_BY_DATE (1 = daily) */
 } logx_rotate_cfg_t;
 ```
 
@@ -354,7 +354,7 @@ typedef enum
 
 ### LogX - Rotation based on size
 
-During configuration, you can use `cfg.rotate.type` to set it based on size and specify the size in mb using `cfg.rotate.size_mb`
+- During configuration, you can use `cfg.rotate.type` to set it based on size and specify the size in mb using `cfg.rotate.size_mb`
 
 ```c
 cfg.rotate.type = LOGX_ROTATE_BY_SIZE;
@@ -371,13 +371,13 @@ cfg.rotate.max_backups = 5; // Number of backups to maintain
 
 ### LogX - Rotation based on date
 
-During `logx_create`, LogX will save the current date in its configuration. Using this information, the LOGX_ROTATE_BY_DATE works.
+- During `logx_create`, LogX will save the current date in its configuration. Using this information, the LOGX_ROTATE_BY_DATE works.
 
-- You can use `cfg.rotate.daily_interval` to specify how many number of days once the log file needs to be rotated.
+- You can use `cfg.rotate.interval_days` to specify how many number of days once the log file needs to be rotated.
 
 ```c
 cfg.rotate.type = LOGX_ROTATE_BY_DATE;
-cfg.rotate.daily_interval = 1 // Rotate the log files daily
+cfg.rotate.interval_days = 1 // Rotate the log files daily
 cfg.rotate.max_backups = 5    // Number of backups to maintain
 ```
 
@@ -482,7 +482,7 @@ Users can call the following APIs from their project code during runtime to modi
 
 ### LogX API - Create
 
-This is the first and foremost function that user should use to create an instance of LogX. Check out [LogX Integration](#logx-integration) section for more details regarding logx instance creation
+- This is the first and foremost function that user should use to create an instance of LogX. Check out [LogX Integration](#logx-integration) section for more details regarding logx instance creation
 
 ```c
 logx_t *logger = logx_create(NULL); // Default configuration
@@ -496,7 +496,7 @@ if (!logger) {
 
 ### LogX API - Destroy
 
-This is the final function that user should call before exiting their application. When `logx_destroy(logger)` is called, it will gracefully close pointers and descriptors and frees the memory that was allocated to the instance
+- This is the final function that user should call before exiting their application. When `logx_destroy(logger)` is called, it will gracefully close pointers and descriptors and frees the memory that was allocated to the instance
 
 ```c
 logx_destory(logger);
@@ -506,7 +506,7 @@ logx_destory(logger);
 
 ### LogX API - Enabling/Disabling console logging
 
-Let's the user enable or diable the console logging during runtime.
+- Let's the user enable or diable the console logging during runtime.
 
 ```c
 // enable console logging
@@ -520,7 +520,7 @@ logx_disable_console_logging(logger);
 
 ### LogX API - Setting console log level
 
-Let's the user modify the log level of console logging to any of the following:
+- Let's the user modify the log level of console logging to any of the following:
 
 ```c
 typedef enum {
@@ -544,7 +544,7 @@ logx_set_console_logging_level(logger, LOGX_LEVEL_WARN);
 
 ### LogX API - Enabling/Disabling file logging
 
-Let's the user enable or diable the file logging during runtime.
+- Let's the user enable or diable the file logging during runtime.
 
 ```c
 // enable console logging
@@ -558,7 +558,7 @@ logx_disable_file_logging(logger);
 
 ### LogX API - Setting file log level
 
-Let's the user modify the log level of file logging to any of the following:
+- Let's the user modify the log level of file logging to any of the following:
 
 ```c
 typedef enum {
@@ -582,9 +582,9 @@ logx_set_file_logging_level(logger, LOGX_LEVEL_WARN);
 
 ### LogX API - Enabling/Disabling colored logging
 
-Let's users enable or disable colored logging
+- Let's users enable or disable colored logging
 
-*NOTE*: This is automatically set if TTY detection is enabled.
+- *NOTE*: This is automatically enabled or disabled if TTY detection is enabled.
 
 ```c
 // enable colored logging
@@ -609,7 +609,7 @@ logx_disable_tty_detection(logger);
 
 ### LogX API - Setting log rotate type
 
-Let's users set the log file rotation criteria to any of the following:
+- Let's users set the log file rotation criteria to any of the following:
 
 ```c
 /* Rotation type */
@@ -624,7 +624,7 @@ typedef enum {
 // rotate log files by size. This works with `cfg.rotate.size_mbytes` parameter in which user will specify the max size in mb that the log files can reach before getting rotated
 logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_SIZE);
 
-// rotate log files by date. This works with `cfg.rotate.daily_interval` parameter in which user will spcify the number of days once the log files should get rotated
+// rotate log files by date. This works with `cfg.rotate.interval_days` parameter in which user will spcify the number of days once the log files should get rotated
 logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_DATE);
 ```
 
@@ -632,7 +632,7 @@ logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_DATE);
 
 ### LogX API - Setting Max Size of Log files
 
-Let's users set the maximum size (in mbytes) for the log files. When log files reach this limit and `cfg.rotate.type` is `LOGX_ROTATE_BY_SIZE`, it will trigger log rotation.
+- Let's users set the maximum size (in mbytes) for the log files. When log files reach this limit and `cfg.rotate.type` is `LOGX_ROTATE_BY_SIZE`, it will trigger log rotation.
 
 ```c
 // set the max size as 15mb
@@ -643,16 +643,17 @@ logx_set_log_file_size_mb(logger, 15);
 
 ### LogX API - Setting Rotation Interval in Days
 
-Let's users set the number of days once the log files should get rotated. This param will be considered only when `cfg.rotate.type` is `LOX_ROTATE_BY_DATE`
+- Let's users set the number of days once the log files should get rotated. This param will be considered only when `cfg.rotate.type` is `LOX_ROTATE_BY_DATE`
 
 ```c
+logx_set_rotation_interval_days(logger, 5);
 ```
 
 ---
 
 ### LogX API - Forcing a log rotation
 
-Let's users trigger a log rotation on-demand even if the base rotation criteria is not met.
+- Let's users trigger a log rotation on-demand even if the base rotation criteria is not met.
 
 ```c
 logx_rotate_now(logger);
@@ -662,9 +663,9 @@ logx_rotate_now(logger);
 
 ### LogX API - Setting number of logfile backups
 
-Let's users specify the number of logfile backups to maintain
+- Let's users specify the number of logfile backups to maintain
 
-*NOTE*:
+- *NOTE*:
     - If number of backups = 0, then when the rotation gets triggered, the main logfile simply gets truncated and no rotation occurs
     - Consider this:
         - Number of backups = 6 initially
@@ -683,7 +684,7 @@ logx_set_num_of_logfile_backups(logger, 5);
 
 ### LogX API - Enabling/Disabling print config
 
-Let's users enable or disable the inital print of LogX configuration that gets printed onto the console. (It's better to have it enabled to make sure of the logx configuration that's gonna get used in your application)
+- Let's users enable or disable the inital print of LogX configuration that gets printed onto the console. (It's better to have it enabled to make sure of the logx configuration that's gonna get used in your application)
 
 ```c
 // enable print config
@@ -699,7 +700,7 @@ logx_disable_print_config(logger);
 
 ### LogX - Binary String
 
-Ever been in a situation where you wanted to look at the individual bits of a value but felt too lazy to write a separate function for it. Worry no more, LogX provides you a simple MACRO `LOGX_BIN_STR(val)` to help you with that.
+- Ever been in a situation where you wanted to look at the individual bits of a value but felt too lazy to write a separate function for it. Worry no more, LogX provides you a simple MACRO `LOGX_BIN_STR(val)` to help you with that.
 
 ```c
     LOGX_DEBUG(logger, "Binary representation of %d is %s", 10, LOGX_BIN_STR(10));
@@ -713,6 +714,6 @@ Ever been in a situation where you wanted to look at the individual bits of a va
 
 ![binary_string](./assets/images/binary_string.png)
 
-Noticed how it automatically prints the output as nibbles... Easier on the eyes 👀
+- Noticed how it automatically prints the output as nibbles... Easier on the eyes 👀
 
 ---

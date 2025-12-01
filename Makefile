@@ -94,7 +94,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 # ---- Default rule ----
-all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) example test
+all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) example test benchmark
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(EXAMPLE_LOG_DIR) $(TEST_LOG_DIR)
@@ -194,7 +194,7 @@ deb: clean
 	@./scripts/make_package.sh
 
 # Install the deb package
-install: deb
+install: format deb
 	@echo "📦 Installing Debian package..."
 	@sudo apt install --reinstall ./build/$(LIB_NAME)-$(VERSION).deb
 	@echo "✅ Installation complete."

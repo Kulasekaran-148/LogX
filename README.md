@@ -61,9 +61,10 @@
 
 - CMake
 - libyaml-dev, libcjson-dev (Used by parsing configuration from file)
+- clang-format (Used for auto-formatting the code before build)
 
 ```bash
-sudo apt install cmake libyaml-dev libcjson-dev -y
+sudo apt install cmake libyaml-dev libcjson-dev clang-format -y
 ```
 
 - *NOTE:* 

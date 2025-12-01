@@ -283,6 +283,23 @@ void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups) {
 }
 
 /**
+ * @brief Sets the log rotation interval in days for a logx logger instance
+ *
+ * @param logger Pointer to the logx logger instance for which the log rotation interval is to be
+ * set
+ * @param interval_days Interval in days
+ */
+void logx_set_rotation_interval_days(logx_t *logger, int interval_days) {
+    if (!logger) {
+        return;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    logger->cfg.rotate.interval_days = interval_days;
+    pthread_mutex_unlock(&logger->lock);
+}
+
+/**
  * @brief Enables print config for a logx logger instance
  *
  * @param logger Pointer to the logx logger instance for which print config is to be enabled

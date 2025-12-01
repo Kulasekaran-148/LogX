@@ -58,7 +58,7 @@ typedef struct {
     logx_rotate_type_t type;        /* type of rotation */
     size_t             size_mb;     /* used when tyep == LOGX_ROTATE_BY_SIZE */
     int                max_backups; /* number of backup files to keep (0 = no backups) */
-    int daily_interval; /* days between rotations when LOGX_ROTATE_BY_DATE (1 = daily) */
+    int interval_days; /* days between rotations when LOGX_ROTATE_BY_DATE (1 = daily) */
 } logx_rotate_cfg_t;
 
 /* Logger configuration passed to create function */
@@ -141,6 +141,9 @@ void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb);
 
 /* Set log file max number of backups */
 void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups);
+
+/* Set log rotation interval in days */
+void logx_set_rotation_interval_days(logx_t *logger, int interval_days);
 
 /* ===== Timer User APIs ===== */
 

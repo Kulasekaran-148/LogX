@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
 
     LOGX_BANNER(logger, "Measuring time taken to print %d logs", limit);
 
-    // Using logx to log messages
-    log_messages(logger, limit);
+    // Directly using printf to log messages
+    printf_messages(logger, limit);
 
     logx_destroy(logger);
     return 0;

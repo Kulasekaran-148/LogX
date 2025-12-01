@@ -45,7 +45,7 @@ extern const char *LOGX_KEY_FILE_LEVEL;
 extern const char *LOGX_KEY_ROTATE_TYPE;
 extern const char *LOGX_KEY_ROTATE_MAX_MBYTES;
 extern const char *LOGX_KEY_ROTATE_MAX_BACKUPS;
-extern const char *LOGX_KEY_ROTATE_DAILY_INTERVAL;
+extern const char *LOGX_KEY_ROTATE_INTERVAL_DAYS;
 
 extern const size_t LOGX_CONFIG_KEY_COUNT;
 

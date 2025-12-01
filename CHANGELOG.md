@@ -34,3 +34,15 @@
     make deb # creates the debian package
     make install # creates & installs the debian package
     ```
+
+## 1.2.1 - Dec 1, 2025
+
+- feature(s)
+    - Add User API to print a value as a binary string
+    - Add User API to change rotatation interval days
+    - Add benchmark
+    - Optimization in logx_log - turned off mutex lock - unlock !
+
+- Documentation
+    - Update reg. newly added APIs
+

@@ -51,14 +51,21 @@ Different consoles render these codes at different values
 \x1b[47m	background white
 */
 
-static const char *COLOR_TRACE  = "\x1b[34m"; /* blue */
-static const char *COLOR_DEBUG  = "\x1b[37m"; /* white */
-static const char *COLOR_INFO   = "\x1b[32m"; /* green */
-static const char *COLOR_WARN   = "\x1b[33m"; /* yellow */
-static const char *COLOR_ERROR  = "\x1b[31m"; /* red */
-static const char *COLOR_BANNER = "\x1b[36m"; /* cyan */
-static const char *COLOR_FATAL  = "\x1b[35m"; /* purple */
-static const char *COLOR_RESET  = "\x1b[0m";
+#define COLOR_TRACE  "\x1b[34m" /* blue */
+#define COLOR_DEBUG  "\x1b[37m" /* white */
+#define COLOR_INFO   "\x1b[32m" /* green */
+#define COLOR_WARN   "\x1b[33m" /* yellow */
+#define COLOR_ERROR  "\x1b[31m" /* red */
+#define COLOR_BANNER "\x1b[36m" /* cyan */
+#define COLOR_FATAL  "\x1b[35m" /* purple */
+#define COLOR_RESET  "\x1b[0m"
+
+/* Log level to color mapping table */
+static const char *LOGX_COLOR_TABLE[] = {
+    [LOGX_LEVEL_TRACE] = COLOR_TRACE, [LOGX_LEVEL_DEBUG] = COLOR_DEBUG,
+    [LOGX_LEVEL_INFO] = COLOR_INFO,   [LOGX_LEVEL_WARN] = COLOR_WARN,
+    [LOGX_LEVEL_ERROR] = COLOR_ERROR, [LOGX_LEVEL_BANNER] = COLOR_BANNER,
+    [LOGX_LEVEL_FATAL] = COLOR_FATAL, [LOGX_LEVEL_OFF] = COLOR_RESET};
 
 /**
  * @brief Validates if the logx_rotate_type_t passed is valid or not
@@ -354,7 +361,7 @@ static void logx_set_default_cfg(logx_cfg_t *cfg) {
     cfg->rotate.type            = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     cfg->rotate.size_mb         = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
     cfg->rotate.max_backups     = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
-    cfg->rotate.daily_interval  = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
+    cfg->rotate.interval_days  = LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
     cfg->print_config           = LOGX_DEFAULT_CFG_PRINT_CONFIG;
 }
@@ -502,8 +509,8 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
     ival                    = get_int(root, LOGX_KEY_ROTATE_MAX_BACKUPS);
     cfg->rotate.max_backups = (ival >= 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
 
-    ival                       = get_int(root, LOGX_KEY_ROTATE_DAILY_INTERVAL);
-    cfg->rotate.daily_interval = (ival > 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
+    ival                       = get_int(root, LOGX_KEY_ROTATE_INTERVAL_DAYS);
+    cfg->rotate.interval_days = (ival > 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
 
     cJSON_Delete(root);
 
@@ -636,10 +643,10 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
                     int backups = atoi(val);
                     cfg->rotate.max_backups =
                         backups > 0 ? backups : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
-                } else if (strcmp(key, LOGX_KEY_ROTATE_DAILY_INTERVAL) == 0) {
+                } else if (strcmp(key, LOGX_KEY_ROTATE_INTERVAL_DAYS) == 0) {
                     int interval = atoi(val);
-                    cfg->rotate.daily_interval =
-                        interval > 0 ? interval : LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
+                    cfg->rotate.interval_days =
+                        interval > 0 ? interval : LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
                 } else if (strcmp(key, LOGX_KEY_BANNER_PATTERN) == 0)
                     cfg->banner_pattern = strdup(val);
                 else if (strcmp(key, LOGX_KEY_PRINT_CONFIG) == 0)
@@ -667,8 +674,8 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
         cfg->rotate.size_mb = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
     if (!cfg->rotate.max_backups)
         cfg->rotate.max_backups = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
-    if (!cfg->rotate.daily_interval)
-        cfg->rotate.daily_interval = LOGX_DEFAULT_CFG_LOG_ROTATE_DAILY_INTERVAL;
+    if (!cfg->rotate.interval_days)
+        cfg->rotate.interval_days = LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
     return 0;
 }
 
@@ -792,7 +799,7 @@ static void logx_print_config(logx_t *l) {
     fprintf(stderr, "[LogX] Max Log Size                : %ld MB\n",
             l->cfg.rotate.size_mb / (1024 * 1024));
     fprintf(stderr, "[LogX] Max Backups                 : %d\n", l->cfg.rotate.max_backups);
-    fprintf(stderr, "[LogX] Rotation Interval (Days)    : %d\n", l->cfg.rotate.daily_interval);
+    fprintf(stderr, "[LogX] Rotation Interval (Days)    : %d\n", l->cfg.rotate.interval_days);
     fprintf(stderr, "[LogX] Print Config                : %s\n", logx_check(l->cfg.print_config));
     fprintf(stderr, "[LogX] ==========================================\n");
 }
@@ -868,6 +875,14 @@ logx_t *logx_create(const logx_cfg_t *cfg) {
         }
     }
 
+    /* TTY detection */
+    if (l->cfg.use_tty_detection) {
+        if (!isatty(fileno(stdout))) {
+            l->cfg.enable_colored_logs = 0;
+        }
+    }
+
+    /* Print configuration if enabled */
     if (l->cfg.print_config) {
         logx_print_config(l);
     }
@@ -946,19 +961,18 @@ void logx_destroy(logx_t *logger) {
 
 void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
               const char *fmt, ...) {
-    if (!logger)
+    if (!logger || level == LOGX_LEVEL_OFF)
         return;
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    pthread_mutex_lock(&logger->lock);
+    // pthread_mutex_lock(&logger->lock);
 
     /* Check thresholds */
-    int write_console = level != LOGX_LEVEL_OFF && logger->cfg.enable_console_logging &&
-                        level >= logger->cfg.console_level;
-    int write_file = level != LOGX_LEVEL_OFF && logger->cfg.enable_file_logging &&
-                     level >= logger->cfg.file_level && logger->fp;
+    int write_console = logger->cfg.enable_console_logging && level >= logger->cfg.console_level;
+    int write_file =
+        logger->cfg.enable_file_logging && level >= logger->cfg.file_level && logger->fp;
 
     if (!write_console && !write_file) {
         pthread_mutex_unlock(&logger->lock);
@@ -966,7 +980,8 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     }
 
     /* rotation check */
-    check_and_rotate_locked(logger);
+    if (write_file)
+        check_and_rotate_locked(logger);
 
     char ts[64];
     now_ts(ts, sizeof(ts), &tv);
@@ -981,20 +996,15 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     va_end(ap);
 
     int         use_color = logger->cfg.enable_colored_logs;
-    const char *c         = COLOR_RESET;
+    const char *color;
 
+    /* Determine color code */
     if (use_color) {
-        switch (level) {
-        case LOGX_LEVEL_TRACE: c = COLOR_TRACE; break;
-        case LOGX_LEVEL_DEBUG: c = COLOR_DEBUG; break;
-        case LOGX_LEVEL_INFO: c = COLOR_INFO; break;
-        case LOGX_LEVEL_WARN: c = COLOR_WARN; break;
-        case LOGX_LEVEL_ERROR: c = COLOR_ERROR; break;
-        case LOGX_LEVEL_BANNER: c = COLOR_BANNER; break;
-        case LOGX_LEVEL_FATAL: c = COLOR_FATAL; break;
-        default: c = COLOR_RESET; break;
-        }
+        color = LOGX_COLOR_TABLE[level];
+    } else {
+        color = COLOR_RESET;
     }
+
     /* If it's a banner log, build the banner */
     if (level == LOGX_LEVEL_BANNER) {
         const char *pattern = (logger->cfg.banner_pattern && *logger->cfg.banner_pattern)
@@ -1017,35 +1027,33 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
         border[padded_len] = '\0';
     }
 
-    snprintf(linebuf, sizeof(linebuf), "[%s] [%s] (%s:%s:%d): ", ts, logx_level_to_string(level),
-             file ? file : "?", func ? func : "?", line);
-
-    int gap_len = strlen(linebuf);
+    /* Prepare prefix */
+    int gap_len    = snprintf(linebuf, sizeof(linebuf), "[%s] [%s] (%s:%s:%d): ", ts,
+                              logx_level_to_string(level), file ? file : "?", func ? func : "?", line);
+    int prefix_len = 5;
 
     /* Console write */
     if (write_console) {
         FILE *out = (level >= LOGX_LEVEL_WARN) ? stderr : stdout;
-        if (logger->cfg.use_tty_detection)
-            use_color = use_color && isatty(fileno(out));
 
         if (use_color) {
             if (level == LOGX_LEVEL_BANNER) {
-                fprintf(out, "%s%s%s", c, linebuf, COLOR_RESET);
-                fprintf(out, "%s%s%s\n", c, border, COLOR_RESET);
+                fprintf(out, "%s%s%s", color, linebuf, COLOR_RESET);
+                fprintf(out, "%s%s%s\n", color, border, COLOR_RESET);
                 fprintf(out, "%*s", gap_len, "");
-                fprintf(out, "%s%*s%s%s\n", c, 5, "", payload, COLOR_RESET);
+                fprintf(out, "%s%*s%s%s\n", color, prefix_len, "", payload, COLOR_RESET);
                 fprintf(out, "%*s", gap_len, "");
-                fprintf(out, "%s%s%s\n", c, border, COLOR_RESET);
+                fprintf(out, "%s%s%s\n", color, border, COLOR_RESET);
             } else {
-                fprintf(out, "%s%s%s", c, linebuf, COLOR_RESET);
-                fprintf(out, "%s%s%s\n", c, payload, COLOR_RESET);
+                fprintf(out, "%s%s%s", color, linebuf, COLOR_RESET);
+                fprintf(out, "%s%s%s\n", color, payload, COLOR_RESET);
             }
         } else {
             if (level == LOGX_LEVEL_BANNER) {
                 fprintf(out, "%s", linebuf);
                 fprintf(out, "%s\n", border);
                 fprintf(out, "%*s", gap_len, "");
-                fprintf(out, "%*s%s\n", 5, "", payload);
+                fprintf(out, "%*s%s\n", prefix_len, "", payload);
                 fprintf(out, "%*s", gap_len, "");
                 fprintf(out, "%s\n", border);
             } else {
@@ -1054,7 +1062,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
             }
         }
 
-        fflush(out);
+        // fflush(out);
     }
 
     /* File write */
@@ -1067,7 +1075,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
                 fprintf(logger->fp, "%s", linebuf);
                 fprintf(logger->fp, "%s\n", border);
                 fprintf(logger->fp, "%*s", gap_len, "");
-                fprintf(logger->fp, "%*s%s\n", 5, "", payload);
+                fprintf(logger->fp, "%*s%s\n", prefix_len, "", payload);
                 fprintf(logger->fp, "%*s", gap_len, "");
                 fprintf(logger->fp, "%s\n", border);
             } else {
@@ -1081,5 +1089,5 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
             file_lock_un(logger->fd);
     }
 
-    pthread_mutex_unlock(&logger->lock);
+    // pthread_mutex_unlock(&logger->lock);
 }
