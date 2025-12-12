@@ -18,7 +18,7 @@ const char *LOGX_KEY_NAME                   = "name";
 const char *LOGX_KEY_FILE_PATH              = "file_path";
 const char *LOGX_KEY_ENABLE_CONSOLE_LOGGING = "enable_console_logging";
 const char *LOGX_KEY_ENABLE_FILE_LOGGING    = "enable_file_logging";
-const char *LOGX_KEY_enable_colored_logs    = "enable_colored_logs";
+const char *LOGX_KEY_ENABLE_COLORED_LOGS    = "enable_colored_logs";
 const char *LOGX_KEY_USE_TTY_DETECTION      = "use_tty_detection";
 const char *LOGX_KEY_BANNER_PATTERN         = "banner_pattern";
 const char *LOGX_KEY_PRINT_CONFIG           = "print_config";
@@ -26,9 +26,9 @@ const char *LOGX_KEY_PRINT_CONFIG           = "print_config";
 const char *LOGX_KEY_CONSOLE_LEVEL = "console_level";
 const char *LOGX_KEY_FILE_LEVEL    = "file_level";
 
-const char *LOGX_KEY_ROTATE_TYPE           = "rotate_type";
-const char *LOGX_KEY_ROTATE_MAX_MBYTES     = "rotate_max_Mbytes";
-const char *LOGX_KEY_ROTATE_MAX_BACKUPS    = "rotate_max_backups";
+const char *LOGX_KEY_ROTATE_TYPE          = "rotate_type";
+const char *LOGX_KEY_ROTATE_SIZE_MB    = "rotate_max_Mbytes";
+const char *LOGX_KEY_ROTATE_MAX_BACKUPS   = "rotate_max_backups";
 const char *LOGX_KEY_ROTATE_INTERVAL_DAYS = "rotate_interval_days";
 
 /* Array of known keys for validation and debugging */
@@ -45,7 +45,7 @@ const logx_config_key_entry_t LOGX_CONFIG_KEYS[] = {
     {           "rotate_type",   "Rotation type (BY_SIZE or BY_DATE)"},
     {     "rotate_max_Mbytes",    "Maximum file size before rotation"},
     {    "rotate_max_backups",      "Maximum number of rotated files"},
-    { "rotate_interval_days", "Interval (in days) for date rotation"},
+    {  "rotate_interval_days", "Interval (in days) for date rotation"},
     {          "print_config",       "Enable or disable config print"},
 };
 

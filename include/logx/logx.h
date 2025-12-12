@@ -161,6 +161,8 @@ void logx_timer_resume(logx_t *logger, const char *name);
 
 /* ===== Helper functions ===== */
 
+int logx_parse_config_file(const char *filepath, logx_cfg_t *cfg);
+
 /* Helper functions - LogX will internally call */
 /* Log a message. file/func/line are helpers provided by macros below. */
 void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,

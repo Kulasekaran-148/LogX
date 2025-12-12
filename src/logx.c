@@ -361,48 +361,24 @@ static void logx_set_default_cfg(logx_cfg_t *cfg) {
     cfg->rotate.type            = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     cfg->rotate.size_mb         = LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
     cfg->rotate.max_backups     = LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
-    cfg->rotate.interval_days  = LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
+    cfg->rotate.interval_days   = LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
     cfg->print_config           = LOGX_DEFAULT_CFG_PRINT_CONFIG;
 }
 
 /**
- * @brief Parse a LogX configuration from a JSON file.
- *
- * This function parses all known LogX configuration keys from a JSON file.
- * If a key is missing or invalid, a warning is logged and a default value is used.
- *
- * @param filepath Path to the JSON config file.
- * @param cfg Pointer to a logx_cfg_t structure that will be filled.
- * @return 0 on success, -1 on error
+ * @brief Parses JSON configuration data inline and populates the logx_cfg_t structure.
+ * 
+ * @param cfg Pointer to the logx_cfg_t structure to populate.
+ * @param data JSON configuration data as a string.
+ * @return int 0 on success, -1 on failure (e.g., parse error
  */
-int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
-    FILE *f = fopen(filepath, "r");
-    if (!f) {
-        fprintf(stderr, "[LogX] Could not open JSON config file: %s\n", filepath);
-        return -1;
-    }
-
-    fseek(f, 0, SEEK_END);
-    long len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char *data = malloc(len + 1);
-    if (!data) {
-        fprintf(stderr, "[LogX] Memory allocation failed while loading: %s\n", filepath);
-        fclose(f);
-        return -1;
-    }
-
-    fread(data, 1, len, f);
-    data[len] = '\0';
-    fclose(f);
-
+int logx_parse_json_config_inline(logx_cfg_t *cfg, const char *data)
+{
     cJSON *root = cJSON_Parse(data);
-    free(data);
 
     if (!root) {
-        fprintf(stderr, "[LogX] JSON parse error in %s\n", filepath);
+        fprintf(stderr, "[LogX] Failed to parse JSON configuration data inline\n");
         return -1;
     }
 
@@ -435,7 +411,7 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
     ival                     = get_bool(root, LOGX_KEY_ENABLE_FILE_LOGGING);
     cfg->enable_file_logging = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_FILE_LOGGING;
 
-    ival                     = get_bool(root, LOGX_KEY_enable_colored_logs);
+    ival                     = get_bool(root, LOGX_KEY_ENABLE_COLORED_LOGS);
     cfg->enable_colored_logs = (ival != -1) ? ival : LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING;
 
     ival                   = get_bool(root, LOGX_KEY_USE_TTY_DETECTION);
@@ -502,14 +478,14 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
         cfg->rotate.type = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
     }
 
-    ival = get_int(root, LOGX_KEY_ROTATE_MAX_MBYTES);
+    ival = get_int(root, LOGX_KEY_ROTATE_SIZE_MB);
     cfg->rotate.size_mb =
         (ival > 0) ? (size_t)ival * 1024 * 1024 : LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB;
 
     ival                    = get_int(root, LOGX_KEY_ROTATE_MAX_BACKUPS);
     cfg->rotate.max_backups = (ival >= 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS;
 
-    ival                       = get_int(root, LOGX_KEY_ROTATE_INTERVAL_DAYS);
+    ival                      = get_int(root, LOGX_KEY_ROTATE_INTERVAL_DAYS);
     cfg->rotate.interval_days = (ival > 0) ? ival : LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
 
     cJSON_Delete(root);
@@ -518,6 +494,47 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
 #undef get_int
 #undef get_bool
 
+    return 0;
+}
+
+/**
+ * @brief Parse a LogX configuration from a JSON file.
+ *
+ * This function parses all known LogX configuration keys from a JSON file.
+ * If a key is missing or invalid, a warning is logged and a default value is used.
+ *
+ * @param filepath Path to the JSON config file.
+ * @param cfg Pointer to a logx_cfg_t structure that will be filled.
+ * @return 0 on success, -1 on error
+ */
+int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
+    FILE *f = fopen(filepath, "r");
+    if (!f) {
+        fprintf(stderr, "[LogX] Could not open JSON config file: %s\n", filepath);
+        return -1;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char *data = malloc(len + 1);
+    if (!data) {
+        fprintf(stderr, "[LogX] Memory allocation failed while loading: %s\n", filepath);
+        fclose(f);
+        return -1;
+    }
+
+    fread(data, 1, len, f);
+    data[len] = '\0';
+    fclose(f);
+
+    if(logx_parse_json_config_inline(cfg, data) != 0 ) {
+        free(data);
+        return -1;
+    }
+
+    free(data);
     return 0;
 }
 
@@ -615,7 +632,7 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
                 else if (strcmp(key, LOGX_KEY_ENABLE_FILE_LOGGING) == 0)
                     cfg->enable_file_logging =
                         (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
-                else if (strcmp(key, LOGX_KEY_enable_colored_logs) == 0)
+                else if (strcmp(key, LOGX_KEY_ENABLE_COLORED_LOGS) == 0)
                     cfg->enable_colored_logs =
                         (strcasecmp(val, "true") == 0 || strcmp(val, "1") == 0);
                 else if (strcmp(key, LOGX_KEY_USE_TTY_DETECTION) == 0)
@@ -630,7 +647,7 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
                         fprintf(stderr, "[LogX] Invalid rotate_type '%s' → Using default.\n", val);
                         cfg->rotate.type = LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE;
                     }
-                } else if (strcmp(key, LOGX_KEY_ROTATE_MAX_MBYTES) == 0) {
+                } else if (strcmp(key, LOGX_KEY_ROTATE_SIZE_MB) == 0) {
                     int mbytes = atoi(val);
                     if (mbytes > 0)
                         cfg->rotate.size_mb = (size_t)mbytes * 1024 * 1024;
@@ -689,7 +706,7 @@ int logx_parse_yaml_config(const char *filepath, logx_cfg_t *cfg) {
  * @param[out] cfg Pointer to the logx configuration structure to populate.
  * @return int 0 on success, -1 on failure.
  */
-static int logx_parse_config_file(const char *filepath, logx_cfg_t *cfg) {
+int logx_parse_config_file(const char *filepath, logx_cfg_t *cfg) {
     if (!filepath || !cfg)
         return -1;
 

@@ -34,7 +34,7 @@ extern const char *LOGX_KEY_NAME;
 extern const char *LOGX_KEY_FILE_PATH;
 extern const char *LOGX_KEY_ENABLE_CONSOLE_LOGGING;
 extern const char *LOGX_KEY_ENABLE_FILE_LOGGING;
-extern const char *LOGX_KEY_enable_colored_logs;
+extern const char *LOGX_KEY_ENABLE_COLORED_LOGS;
 extern const char *LOGX_KEY_USE_TTY_DETECTION;
 extern const char *LOGX_KEY_BANNER_PATTERN;
 extern const char *LOGX_KEY_PRINT_CONFIG;
@@ -43,7 +43,7 @@ extern const char *LOGX_KEY_CONSOLE_LEVEL;
 extern const char *LOGX_KEY_FILE_LEVEL;
 
 extern const char *LOGX_KEY_ROTATE_TYPE;
-extern const char *LOGX_KEY_ROTATE_MAX_MBYTES;
+extern const char *LOGX_KEY_ROTATE_SIZE_MB;
 extern const char *LOGX_KEY_ROTATE_MAX_BACKUPS;
 extern const char *LOGX_KEY_ROTATE_INTERVAL_DAYS;
 

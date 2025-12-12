@@ -70,7 +70,10 @@ LIBS = -llogx -lyaml -lcjson
 # ---- Compiler settings ----
 CC          := gcc
 AR          := ar
+
+# PIC = Position Independent Code for shared libraries (.so)
 CFLAGS      := -Wall -Wextra -std=c11 -fPIC -pthread -I$(INC_DIR)
+
 ARFLAGS     := rcs
 LDFLAGS     := -shared -pthread
 
@@ -190,11 +193,11 @@ fresh_docs: clean_docs
 	@echo "✅ Docs generation complete."
 
 # Run Debian package making script
-deb: clean
-	@./scripts/make_package.sh
+deb: clean format
+	@./scripts/make_package.sh $(BUILD_TYPE)
 
 # Install the deb package
-install: format deb
+install: deb
 	@echo "📦 Installing Debian package..."
 	@sudo apt install --reinstall ./build/$(LIB_NAME)-$(VERSION).deb
 	@echo "✅ Installation complete."
@@ -206,20 +209,20 @@ help:
 	@echo "------------------------------------------------------------"
 	@echo "Available targets:"
 	@echo ""
-	@echo "  make                          - Build both static and shared libraries"
+	@echo "  make                          - Build in Debug mode (default)"
 	@echo "  make BUILD_TYPE=Release       - Build in Release mode (optimized)"
 	@echo "  make clean                    - Clean all build artifacts"
-	@echo "  make fresh                    - Clean and build"
+	@echo "  make fresh                    - Clean all build artifacts and build in Debug mode"
 	@echo "  make format                   - Run clang-format on all source and headers"
-	@echo "  make tidy                     - Run clang-tidy static analysis"
-	@echo "  make example				   - Build examples"
-	@echo "  make test                     - Build tests"
-	@echo "  make benchmark                - Build benchmarks"
+	@echo "  make tidy                     - Run clang-tidy static analysis (Still experimental)"
+	@echo "  make example				   - Build examples in Debug mode"
+	@echo "  make test                     - Build tests in Debug mode"
+	@echo "  make benchmark                - Build benchmarks in Debug mode"
 	@echo "  make clean_docs               - Clean the doxygen docs folder"
 	@echo "  make fresh_docs               - Clean and build the doxygen docs folder"
 	@echo "  make help                     - Show this help message"
-	@echo "  make deb                      - Create Debian package"
-	@echo "  make install                  - Install the Debian package"
+	@echo "  make deb                      - Clean + format + Create Debian package"
+	@echo "  make install                  - Clean + format + Create and install Debian package"
 	@echo ""
 	@echo "------------------------------------------------------------"
 	@echo "Example:"
