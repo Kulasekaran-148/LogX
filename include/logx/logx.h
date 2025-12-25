@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+#define LOGX_MAX_PAYLOAD_SIZE_BYTES 4096
+
 #ifndef LOGX_MAX_TIMERS
 #define LOGX_MAX_TIMERS 5
 #endif

@@ -6,13 +6,13 @@
 PROJECT     := LogX
 LIB_NAME	:= liblogx
 BUILD_DIR   := build
-SRC_DIR     := src
-INC_DIR     := include
+SRC_DIR     := src/logx
+INC_DIR     := include/logx
 
 # ---- Version ----
-MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/logx/version.h)
-PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/logx/version.h)
+MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/version.h)
+MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/version.h)
+PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/version.h)
 VERSION := $(MAJOR).$(MINOR).$(PATCH)
 
 # ---- Examples ----

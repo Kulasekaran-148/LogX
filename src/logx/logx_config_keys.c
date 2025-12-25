@@ -9,7 +9,7 @@
  *
  */
 
-#include "../include/logx/logx_config_keys.h"
+#include "../../include/logx/logx_config_keys.h"
 
 #include <cjson/cJSON.h>
 #include <stdio.h>

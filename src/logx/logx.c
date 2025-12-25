@@ -11,10 +11,10 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#include "../include/logx/logx.h"
+#include "../../include/logx/logx.h"
 
-#include "../include/logx/logx_config_keys.h"
-#include "../include/logx/logx_defaults.h"
+#include "../../include/logx/logx_config_keys.h"
+#include "../../include/logx/logx_defaults.h"
 
 #include <cjson/cJSON.h>
 #include <fcntl.h>
@@ -971,7 +971,7 @@ void logx_destroy(logx_t *logger) {
  * - File writes honor file locks if a file descriptor is provided.
  *
  * @note
- * - Payloads are truncated if they exceed 4096 bytes.
+ * - Payloads are truncated if they exceed LOGX_MAX_PAYLOAD_SIZE_BYTES bytes.
  * - Colored output will be disabled if TTY detection is enabled and the output is not a terminal.
  * - The function is safe to call from multiple threads.
  */
@@ -1004,9 +1004,9 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     now_ts(ts, sizeof(ts), &tv);
 
     /* prepare message payload */
-    char    payload[4096];
-    char    linebuf[4096];
-    char    border[4096 + 10]; // payload max + margins
+    char    payload[LOGX_MAX_PAYLOAD_SIZE_BYTES];
+    char    linebuf[LOGX_MAX_PAYLOAD_SIZE_BYTES];
+    char    border[LOGX_MAX_PAYLOAD_SIZE_BYTES + 10]; // payload max + margins
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(payload, sizeof(payload), fmt, ap);

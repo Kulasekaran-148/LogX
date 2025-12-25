@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include "../include/logx/logx.h"
+#include "../../include/logx/logx.h"
 
 #include <stddef.h>
 #include <stdio.h>

@@ -11,7 +11,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#include "../include/logx/logx.h"
+#include "../../include/logx/logx.h"
 
 #include <pthread.h>
 #include <stdint.h>
