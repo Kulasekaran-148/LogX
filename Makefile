@@ -6,13 +6,24 @@
 PROJECT     := LogX
 LIB_NAME	:= liblogx
 BUILD_DIR   := build
-SRC_DIR     := src/logx
-INC_DIR     := include/logx
+LOGX_CORE_SRC_DIR     := src/logx
+LOGX_CORE_INC_FILES   := include/logx
+
+# ---- Daemon & CLI ----
+LOGXD_SRC_DIR   := src/logxd
+LOGXD_INC_DIR   := include/logxd
+LOGXD_SCRIPT  := $(LOGXD_SRC_DIR)/logxd.sh
+
+LOGXD_DAEMON_SRC := $(LOGXD_SRC_DIR)/logxd.c
+LOGXD_CLI_SRC    := $(LOGXD_SRC_DIR)/logx_cli.c
+
+LOGXD_DAEMON_BIN := $(BUILD_DIR)/logxd
+LOGXD_CLI_BIN    := $(BUILD_DIR)/logx-cli
 
 # ---- Version ----
-MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(INC_DIR)/version.h)
-MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(INC_DIR)/version.h)
-PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(INC_DIR)/version.h)
+MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' $(LOGX_CORE_INC_FILES)/version.h)
+MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' $(LOGX_CORE_INC_FILES)/version.h)
+PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' $(LOGX_CORE_INC_FILES)/version.h)
 VERSION := $(MAJOR).$(MINOR).$(PATCH)
 
 # ---- Examples ----
@@ -72,7 +83,9 @@ CC          := gcc
 AR          := ar
 
 # PIC = Position Independent Code for shared libraries (.so)
-CFLAGS      := -Wall -Wextra -std=c11 -fPIC -pthread -I$(INC_DIR)
+CFLAGS      := -Wall -Wextra -std=c11 -fPIC -pthread \
+				-I$(LOGX_CORE_INC_FILES) \
+				-I$(LOGXD_INC_DIR)
 
 ARFLAGS     := rcs
 LDFLAGS     := -shared -pthread
@@ -93,17 +106,17 @@ FORMATTER := clang-format
 TIDY      := clang-tidy
 
 # ---- Sources and objects ----
-SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
-OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
+LOGX_CORE_SRC_FILES := $(wildcard $(LOGX_CORE_SRC_DIR)/*.c)
+OBJ_FILES := $(patsubst $(LOGX_CORE_SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(LOGX_CORE_SRC_FILES))
 
 # ---- Default rule ----
-all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) example test benchmark
+all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) daemon example test benchmark
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(EXAMPLE_LOG_DIR) $(TEST_LOG_DIR)
 
 # ---- Compilation ----
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o: $(LOGX_CORE_SRC_DIR)/%.c
 	@echo "🧩 Compiling $< ..."
 	@$(CC) $(CFLAGS) -c $< -o $@
 
@@ -120,16 +133,35 @@ $(TARGET_SHARED): $(OBJ_FILES)
 	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(VERSION) lib$(TARGET).so.$(MAJOR)
 	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(MAJOR) lib$(TARGET).so
 	@echo "✅ Built: lib$(TARGET).so.$(VERSION)"
+
+daemon: $(LOGXD_DAEMON_BIN) $(LOGXD_CLI_BIN)
+
+$(LOGXD_DAEMON_BIN): $(LOGXD_DAEMON_SRC) $(TARGET_SHARED)
+	@echo "🚀 Building logxd daemon..."
+	@$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) \
+		-Wl,-rpath,$(BUILD_DIR) \
+		-o $@
+	@echo "✅ Built daemon: $@"
+
+
+$(LOGXD_CLI_BIN): $(LOGXD_CLI_SRC) $(TARGET_SHARED)
+	@echo "🖥️  Building logx CLI..."
+	@$(CC) $(CFLAGS) $< -L$(BUILD_DIR) $(LIBS) \
+		-Wl,-rpath,$(BUILD_DIR) \
+		-o $@
+	@echo "✅ Built CLI: $@"
+
+
 	
 # ---- Formatting & Linting ----
 format:
 	@echo "🎨 Running clang-format..."
-	@find $(SRC_DIR) $(INC_DIR) -name "*.[ch]" | xargs $(FORMATTER) -i
+	@find $(LOGX_CORE_SRC_DIR) $(LOGX_CORE_INC_FILES) $(LOGXD_SRC_DIR) $(LOGXD_INC_DIR) -name "*.[ch]" | xargs $(FORMATTER) -i
 	@echo "✅ Formatting done."
 
 tidy:
 	@echo "🔍 Running clang-tidy..."
-	@$(TIDY) $(SRC_FILES) -- -I$(INC_DIR)
+	@$(TIDY) $(LOGX_CORE_SRC_FILES) -- -I$(LOGX_CORE_INC_FILES)
 	@echo "✅ Clang-tidy check complete."
 
 # ---- Examples ----
@@ -163,6 +195,8 @@ $(BENCHMARKS_BIN_ROOT)/%: $(BENCHMARKS_SRC_DIR)/%.c $(TARGET_STATIC) $(TARGET_SH
 clean:
 	@echo "🧹 Cleaning build..."
 	@rm -rf $(BUILD_DIR)
+	@echo "🧹 Cleaning daemon and CLI binaries..."
+	@rm -rf $(LOGXD_DAEMON_BIN) $(LOGXD_CLI_BIN)
 	@echo "🧹 Cleaning example binaries..."
 	@rm -rf $(EXAMPLE_BIN_ROOT)
 	@echo "🧹 Cleaning example log files..."
@@ -211,6 +245,7 @@ help:
 	@echo ""
 	@echo "  make                          - Build in Debug mode (default)"
 	@echo "  make BUILD_TYPE=Release       - Build in Release mode (optimized)"
+	@echo "  make daemon				   - Build logxd daemon and logx-cli"
 	@echo "  make clean                    - Clean all build artifacts"
 	@echo "  make fresh                    - Clean all build artifacts and build in Debug mode"
 	@echo "  make format                   - Run clang-format on all source and headers"
@@ -229,4 +264,4 @@ help:
 	@echo "  make BUILD_TYPE=Release clean all"
 	@echo ""
 
-.PHONY: all dirs format tidy check example test benchmark clean fresh fresh_docs clean_docs deb install help
+.PHONY: all dirs format daemon tidy check example test benchmark clean fresh fresh_docs clean_docs deb install help

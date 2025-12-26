@@ -25,14 +25,15 @@
 extern "C" {
 #endif
 
-#define LOGX_MAX_PAYLOAD_SIZE_BYTES 4096
+#define LOGX_MAX_PAYLOAD_SIZE_BYTES     4096
+#define LOGX_MAX_CALLER_FILE_NAME_BYTES 64
 
 #ifndef LOGX_MAX_TIMERS
 #define LOGX_MAX_TIMERS 5
 #endif
 
-#ifndef LOGX_TIMER_MAX_LEN
-#define LOGX_TIMER_MAX_LEN 64
+#ifndef LOGX_MAX_TIMER_NAME_LEN_BYTES
+#define LOGX_MAX_TIMER_NAME_LEN_BYTES 64
 #endif
 
 /* Log levels */
@@ -81,11 +82,11 @@ typedef struct {
 
 /* Timer object */
 typedef struct {
-    void           *logger;                   // pointer that will store the parent logger instance
-    char            name[LOGX_TIMER_MAX_LEN]; // Timer name
-    struct timespec start;                    // Start time
-    uint64_t        accumulated_ns;           // nanoseconds accumulated due to pauses
-    bool            running;                  // 1 if currently running
+    void           *logger; // pointer that will store the parent logger instance
+    char            name[LOGX_MAX_TIMER_NAME_LEN_BYTES]; // Timer name
+    struct timespec start;                               // Start time
+    uint64_t        accumulated_ns;                      // nanoseconds accumulated due to pauses
+    bool            running;                             // 1 if currently running
 } logx_timer_t;
 
 /* LogX core structure */
@@ -102,6 +103,9 @@ typedef struct {
 /* Utility functions - Users can call */
 /* Create and initialize a logger. Returns NULL on failure. */
 logx_t *logx_create(const logx_cfg_t *cfg);
+
+/* Create and initialize a logger from daemon */
+logx_t *logxd_create(const char *config_file_path);
 
 /* Close and free resources. Safe to call multiple times. */
 void logx_destroy(logx_t *logger);

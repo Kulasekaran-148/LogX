@@ -29,7 +29,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # --- Auto-collect .c and .h files ---
-file(GLOB LOGX_SOURCES "${PROJECT_SOURCE_DIR}/src/*.c")
+file(GLOB LOGX_SOURCES "${PROJECT_SOURCE_DIR}/src/logx/*.c")
 file(GLOB LOGX_PUBLIC_HEADERS "${PROJECT_SOURCE_DIR}/include/logx/*.h")
 
 # --- Shared library ---
@@ -45,6 +45,22 @@ target_include_directories(logx_static PUBLIC include)
 # Dependencies
 target_link_libraries(logx PRIVATE yaml cjson)
 target_link_libraries(logx_static PRIVATE yaml cjson)
+
+# --- LogX Daemon executable ---
+add_executable(logxd
+    src/logxd/logxd.c
+)
+
+target_include_directories(logxd PRIVATE include)
+target_link_libraries(logxd PRIVATE logx pthread)
+
+# --- LogX CLI executable ---
+add_executable(logx-cli
+    src/logxd/logx_cli.c
+)
+
+target_include_directories(logx-cli PRIVATE include)
+target_link_libraries(logx-cli PRIVATE logx pthread)
 
 # --- Properties for shared library ---
 set_target_properties(logx PROPERTIES
@@ -64,6 +80,19 @@ install(TARGETS logx
 install(TARGETS logx_static
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/logx
+)
+
+install(TARGETS logxd
+    RUNTIME DESTINATION sbin
+)
+
+install(TARGETS logx-cli
+    RUNTIME DESTINATION bin
+)
+
+install(PROGRAMS
+    src/logxd/logxd.sh
+    DESTINATION lib/logx
 )
 
 # --- Packaging configuration ---

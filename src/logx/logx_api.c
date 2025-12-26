@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 
-#include "../../include/logx/logx.h"
-
+#include <logx/logx.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +58,7 @@ void logx_set_file_logging_level(logx_t *logger, logx_level_t level) {
  * @param[in] logger Pointer to the logx logger instance for which the console logging is to be
  * enabled
  */
-void logx_set_console_logging(logx_t *logger) {
+void logx_enable_console_logging(logx_t *logger) {
     if (!logger) {
         return;
     }

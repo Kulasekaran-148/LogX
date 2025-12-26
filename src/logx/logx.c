@@ -11,13 +11,11 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#include "../../include/logx/logx.h"
-
-#include "../../include/logx/logx_config_keys.h"
-#include "../../include/logx/logx_defaults.h"
-
 #include <cjson/cJSON.h>
 #include <fcntl.h>
+#include <logx/logx.h>
+#include <logx/logx_config_keys.h>
+#include <logx/logx_defaults.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,13 +366,12 @@ static void logx_set_default_cfg(logx_cfg_t *cfg) {
 
 /**
  * @brief Parses JSON configuration data inline and populates the logx_cfg_t structure.
- * 
+ *
  * @param cfg Pointer to the logx_cfg_t structure to populate.
  * @param data JSON configuration data as a string.
  * @return int 0 on success, -1 on failure (e.g., parse error
  */
-int logx_parse_json_config_inline(logx_cfg_t *cfg, const char *data)
-{
+int logx_parse_json_config_inline(logx_cfg_t *cfg, const char *data) {
     cJSON *root = cJSON_Parse(data);
 
     if (!root) {
@@ -529,7 +526,7 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg) {
     data[len] = '\0';
     fclose(f);
 
-    if(logx_parse_json_config_inline(cfg, data) != 0 ) {
+    if (logx_parse_json_config_inline(cfg, data) != 0) {
         free(data);
         return -1;
     }
@@ -907,6 +904,22 @@ logx_t *logx_create(const logx_cfg_t *cfg) {
     return l;
 }
 
+logx_t *logxd_create(const char *cfg_file_path) {
+    logx_cfg_t cfg;
+    logx_set_default_cfg(&cfg);
+
+    if (cfg_file_path) {
+        if (logx_parse_config_file(cfg_file_path, &cfg) != 0) {
+            fprintf(stderr,
+                    "[LogX] Failed to parse configuration file: %s. Using default "
+                    "configuration.\n",
+                    cfg_file_path);
+        }
+    }
+
+    return logx_create(&cfg);
+}
+
 /**
  * @brief Destroys a LogX logger instance and frees associated resources.
  *
@@ -975,7 +988,6 @@ void logx_destroy(logx_t *logger) {
  * - Colored output will be disabled if TTY detection is enabled and the output is not a terminal.
  * - The function is safe to call from multiple threads.
  */
-
 void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
               const char *fmt, ...) {
     if (!logger || level == LOGX_LEVEL_OFF)

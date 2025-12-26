@@ -27,7 +27,7 @@ const char *LOGX_KEY_CONSOLE_LEVEL = "console_level";
 const char *LOGX_KEY_FILE_LEVEL    = "file_level";
 
 const char *LOGX_KEY_ROTATE_TYPE          = "rotate_type";
-const char *LOGX_KEY_ROTATE_SIZE_MB    = "rotate_max_Mbytes";
+const char *LOGX_KEY_ROTATE_SIZE_MB       = "rotate_max_Mbytes";
 const char *LOGX_KEY_ROTATE_MAX_BACKUPS   = "rotate_max_backups";
 const char *LOGX_KEY_ROTATE_INTERVAL_DAYS = "rotate_interval_days";
 

@@ -181,8 +181,8 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name) {
 
     logx_timer_t *t = &logger->timers[logger->timer_count++];
 
-    strncpy(t->name, name, LOGX_TIMER_MAX_LEN - 1);
-    t->name[LOGX_TIMER_MAX_LEN - 1] = '\0'; // Ensure null-termination
+    strncpy(t->name, name, LOGX_MAX_TIMER_NAME_LEN_BYTES - 1);
+    t->name[LOGX_MAX_TIMER_NAME_LEN_BYTES - 1] = '\0'; // Ensure null-termination
 
     clock_gettime(CLOCK_MONOTONIC, &t->start);
     t->accumulated_ns = 0;
