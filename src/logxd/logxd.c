@@ -118,9 +118,10 @@ static int daemonize(void) {
      *
      * NOTE:
      *  A more robust approach is to redirect these
-     *  to /dev/null using dup2().
+     *  to /dev/null using dup2(). But don't do this, if logxd is running as a systemd service, as
+     * systemd already redirects stdout/stderr to its journal.
      */
-    redirect_stdio_to_null();
+    // redirect_stdio_to_null();
 
     return 0; /* Daemonization successful */
 }

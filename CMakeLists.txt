@@ -95,6 +95,11 @@ install(PROGRAMS
     DESTINATION lib/logx
 )
 
+install(
+    FILES src/logxd/logxd.service
+    DESTINATION lib/systemd/system
+)
+
 # --- Packaging configuration ---
 set(CPACK_PACKAGE_NAME "liblogx")
 set(CPACK_PACKAGE_VENDOR "Kulasekaran")
@@ -112,6 +117,12 @@ set(CPACK_GENERATOR "DEB")
 
 # Control the output file name exactly
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+    "${CMAKE_SOURCE_DIR}/scripts/logxd_postinst"
+    "${CMAKE_SOURCE_DIR}/scripts/logxd_prerm"
+    "${CMAKE_SOURCE_DIR}/scripts/logxd_postrm"
+)
 
 # Include CPack last
 include(CPack)

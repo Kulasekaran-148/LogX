@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload
+    systemctl enable logxd.service
+    systemctl restart logxd.service || systemctl start logxd.service
+fi
+
+exit 0
