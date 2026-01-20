@@ -93,8 +93,18 @@ TIDY      := clang-tidy
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
+# ---- Specify dependencies ----
+PKG_MANAGER ?= apt
+DEPS := clang-format
+ifeq ($(USE_CJSON),1)
+  DEPS += libcjson-dev
+endif
+ifeq ($(USE_CYAML),1)
+  DEPS += libcyaml-dev
+endif
+
 # ---- Default rule ----
-all: dirs format $(TARGET_STATIC) $(TARGET_SHARED) example test benchmark
+all: dirs install_deps format $(TARGET_STATIC) $(TARGET_SHARED) example test benchmark
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(EXAMPLE_LOG_DIR) $(TEST_LOG_DIR)
@@ -117,7 +127,19 @@ $(TARGET_SHARED): $(OBJ_FILES)
 	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(VERSION) lib$(TARGET).so.$(MAJOR)
 	@cd $(BUILD_DIR) && ln -sf lib$(TARGET).so.$(MAJOR) lib$(TARGET).so
 	@echo "✅ Built: lib$(TARGET).so.$(VERSION)"
-	
+
+# ---- Install Dependencies ----
+install_deps:
+	@echo "📦 Installing dependencies..."
+	ifeq ($(PKG_MANAGER), apt)
+		@sudo apt update
+		@sudo apt install -y $(DEPS)
+	else
+		@echo "❌ Unsupported PKG_MANAGER=$(PKG_MANAGER)"
+		@exit 1
+	endif
+		@echo "✅ Dependencies installed: $(DEPS)"
+
 # ---- Formatting & Linting ----
 format:
 	@echo "🎨 Running clang-format..."
