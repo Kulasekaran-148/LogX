@@ -17,6 +17,7 @@
 #include "logx_defaults.h"
 
 #include <cJSON/cJSON.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -804,6 +805,48 @@ static void logx_print_config(logx_t *l) {
     fprintf(stderr, "[LogX] ==========================================\n");
 }
 
+static int mkdir_p(const char *path)
+{
+    char tmp[256];
+    snprintf(tmp, sizeof(tmp), "%s", path);
+
+    for (char *p = tmp + 1; *p; p++)
+    {
+        if (*p == '/')
+        {
+            *p = '\0';
+            if (mkdir(tmp, 0755) && errno != EEXIST)
+                return -1;
+            *p = '/';
+        }
+    }
+
+    if (mkdir(tmp, 0755) && errno != EEXIST)
+        return -1;
+
+    return 0;
+}
+
+static void ensure_parent_dir_exists(const char *filepath)
+{
+    char path[256];
+    snprintf(path, sizeof(path), "%s", filepath);
+
+    char *last_slash = strrchr(path, '/');
+    if (last_slash)
+    {
+        *last_slash = '\0';
+
+        if (mkdir_p(path) != 0)
+        {
+            fprintf(stderr,
+                    "[LogX] Failed to create directory %s (%s)\n",
+                    path, strerror(errno));
+        }
+    }
+}
+
+
 /**
  * @brief Create and initialize a LogX logger instance.
  *
@@ -859,6 +902,10 @@ logx_t *logx_create(const logx_cfg_t *cfg) {
     l->current_date[0] = '\0';
 
     if (l->cfg.enable_file_logging && l->cfg.file_path) {
+
+        /* Ensure directory exists */
+        ensure_parent_dir_exists(l->cfg.file_path);
+
         l->fp = fopen(l->cfg.file_path, "a");
         if (!l->fp) {
             fprintf(stderr, "[LogX] Opening %s failed. Disabling file logging...\n",
