@@ -1,5 +1,5 @@
 /**
- * @file logx_config_keys.h
+ * @file logx_config_keys.h 
  * @author kulasekaran (kulasekaranslrk@gmail.com)
  * @brief This file defines the keys used in configuration files for logx logger
  * @version 0.1
@@ -12,7 +12,7 @@
 #ifndef LOGX_CONFIG_KEYS_H
 #define LOGX_CONFIG_KEYS_H
 
-#include <cjson/cJSON.h>
+#include <cJSON/cJSON.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

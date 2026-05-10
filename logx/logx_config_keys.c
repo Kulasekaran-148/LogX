@@ -9,9 +9,9 @@
  *
  */
 
-#include "../include/logx/logx_config_keys.h"
+#include "logx_config_keys.h"
 
-#include <cjson/cJSON.h>
+#include <cJSON/cJSON.h>
 #include <stdio.h>
 
 const char *LOGX_KEY_NAME                   = "name";

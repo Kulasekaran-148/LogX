@@ -11,12 +11,12 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#include "../include/logx/logx.h"
+#include "logx.h"
 
-#include "../include/logx/logx_config_keys.h"
-#include "../include/logx/logx_defaults.h"
+#include "logx_config_keys.h"
+#include "logx_defaults.h"
 
-#include <cjson/cJSON.h>
+#include <cJSON/cJSON.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdio.h>
