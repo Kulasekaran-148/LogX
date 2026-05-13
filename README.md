@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Kulasekaran-148/LogX/build.yml?branch=main)](https://github.com/Kulasekaran-148/LogX/actions)  
 [![License](https://img.shields.io/github/license/Kulasekaran-148/LogX)](LICENSE)  
-[![Documentation](https://img.shields.io/badge/docs-Doxygen-blue)](https://<USERNAME>.github.io/<REPO>/)
+[![Documentation](https://img.shields.io/badge/docs-Doxygen-blue)](https://kulasekaran-148.github.io/LogX/)
 
 ---
 
@@ -12,9 +12,9 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+- [Generating Docs](#generating-doxygen-documentation)
 - [Changelog](#changelog)
 - [Quick Start](#quick-start)
-- [Benchmarks](#benchmarks)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
@@ -23,7 +23,7 @@
 
 ## Introduction
 
-**LogX** is an easy, sophisticated, flexible, user-friendly and robust logging library in C, designed for Linux based systems with high customizability.
+**LogX** is a highly-customizable, thread-safe logging library in C, built for Linux systems.
 
 ---
 
@@ -32,7 +32,7 @@
 - Log Levels: `TRACE`, `DEBUG`, `INFO`, `BANNER`, `WARN`, `ERROR`, `FATAL`
 - ANSI Colored logs
   - Auto TTY detection to enable / disable colored logs
-- Load logger configuration from .YAML or .JSON file
+- Load logger configuration from `.YAML` or `.JSON` file
 - Console and file logging
   - Enable/Disable Console logging
   - Enable/Disable File logging
@@ -45,65 +45,91 @@
 - Thread-safe implementation
 - Lightweight and minimal dependencies
 
-## Features (coming soon ... )
+<details>
+<summary>Planned Features</summary>
+
 - Configurable log format
 - Asynchronous logging support
 - Log tags
 - Privacy filtering
-- Logging mode switch
+- Logging mode switch (dev, prod)
 - Logfile compression
 - Multiple file logging
 - Syslog support
-- logger configuration from INI
+- Logger configuration from INI
 - Persisting logger configuration
 
----
-
-## Dependencies
-
-- CMake
-- libyaml-dev, libcjson-dev (Used by parsing configuration from file)
-- clang-format (Used for auto-formatting the code before build)
-
-```bash
-sudo apt install cmake libyaml-dev libcjson-dev clang-format -y
-```
-
-- *NOTE:* 
-  - Dependencies need to be installed manually before building from source
-  - Dependencies are auto installed when installing from Releases
+</details>
 
 ---
 
 ## Installation
 
-### From Releases
-
-- Click [here](https://github.com/Kulasekaran-148/LogX/releases) to download the latest release of LogX
-- In the Releases page, download the ` liblogx-x.x.x.deb` file to your PC
-- Navigate to the directory where you downloaded the file
-- Run the following command to install LogX to your PC:
+### Prerequisites
+Ensure the following are installed before proceeding:
+- `gcc` (or any C compiler)
+- `make`
+- `cmake`
 
 ```bash
-sudo apt update && sudo apt install liblogx-x.x.x.deb -y
+sudo apt install build-essential cmake -y
 ```
 
-- Once it is installed, refere to [Quick Start](#quick-start) section on how to get started with using LogX
+### From Releases
+- Click [here](https://github.com/Kulasekaran-148/LogX/releases) to download the latest release of LogX
+- In the Releases page, download the `liblogx-<VERSION>.deb` file to your PC
+- Navigate to the directory where you downloaded the file
+- Run the following command to install LogX:
+
+```bash
+sudo apt install ./liblogx-<VERSION>.deb -y
+```
+
+- Verify the installation:
+
+```bash
+dpkg -l | grep logx
+```
+
+- Once installed, refer to the [Quick Start](#quick-start) section to get started.
 
 ### From Source
 
 ```bash
-git clone https://github.com/Kulasekaran-148/LogX.git
+git clone --recurse-submodules https://github.com/Kulasekaran-148/LogX.git # why --recurse-submodules ? As repo contains git submodules
+
+# If you already cloned without --recurse-submodules, run:
+git submodule update --init --recursive
+
+# Navigate to repository root directory
 cd LogX
-make install # This will automaitcally trigger a build and install the package
+
+# Build the project
+make
+
+# Install LogX (uses apt to automatically resolve and install dependencies)
+make install
 ```
 
-- After installation, you can refer to the [Quick Start](#quick-start) example on how to integrate LogX with your project.
-- Once that's done, you can use the following command to compile:
+- Verify the installation:
+
+```bash
+dpkg -l | grep logx
+```
+
+### Compiling Your Project with LogX
 
 ```bash
 gcc main.c -o main -llogx
 ```
+
+### Uninstalling
+
+```bash
+sudo apt remove liblogx
+```
+
+Next, check out the [Quick Start](#quick-start) section to get started.
 
 ---
 
@@ -149,9 +175,13 @@ Go to `./docs/latex/` and run make to generate the pdf documentation. It will be
 
 ## Quick Start
 
+The following examples shows how to use logx in your code
+
+main.c:
+
 ```C
 #include <stdio.h>
-#include <logx.h>
+#include <logx.h> // <-- Include logx header
 
 int main() {
     // Initialize logger
@@ -176,34 +206,12 @@ int main() {
 }
 ```
 
-- Click [here](./GUIDE.md) to view the full guide on LogX's features, how-to-use with neat little examples.
+Compile with:
+```bash
+gcc main.c -o main -llogx
+```
 
----
-
-## Benchmarks
-
-| Component            | Details                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| **OS**               | Ubuntu 22.04.5 LTS (Jammy)                                          |
-| **Kernel**           | 6.8.0-87-generic                                                    |
-| **CPU**              | AMD Ryzen 5 3550H with Radeon Vega Mobile Gfx (4 cores / 8 threads) |
-| **CPU Architecture** | x86_64 (Supports 32-bit & 64-bit mode)                              |
-| **CPU Frequency**    | 1.40 GHz (min) — 2.10 GHz (max), Boost enabled                      |
-| **Cache**            | L1: 128 KiB (data), 256 KiB (instruction) • L2: 2 MiB • L3: 4 MiB   |
-| **Virtualization**   | AMD-V                                                               |
-| **Memory (RAM)**     | 15 GiB total (≈4.0 GiB used, 8.1 GiB free, 10 GiB available)        |
-| **Swap**             | 6.6 GiB                                                             |
-| **GPU**              | AMD/ATI Picasso/Raven 2 — Radeon Vega Mobile Series                 |
-| **NUMA Nodes**       | 1 (CPUs 0–7)                                                        |
-
-
-The following table shows approximate benchmark results for printing different numbers of log lines in various configurations.  
-(All values are indicative and depend on system performance.)
-
-| Sl. No | Console Log | File Log | Num. of Log Lines | LogX Time | Other Logger Time |
-|--------|-------------|----------|--------------------|-----------|--------------------|
-| 1      | Enabled     | Disabled | 100,000            | ~12s      | ~4s                |
-
+Click [here](./GUIDE.md) to view the full guide on LogX's features, how-to-use with perfectly curated examples.
 
 ---
 
@@ -213,16 +221,24 @@ Contributions are welcome! Please follow these steps:
 
 1. Fork the repository.
 2. Create a new branch:
-   ```bash
+```bash
    git checkout -b feature/my-feature
+```
 3. Make your changes and commit:
-   ```bash
+```bash
    git commit -m "Add feature"
-4. Push to your branch
-   ```bash
+```
+4. Push to your branch:
+```bash
    git push origin feature/my-feature
-5. Open a Pull Request
+```
+5. Open a Pull Request.
 
+### Guidelines
+- Follow the existing code style and formatting.
+- Use clear, descriptive commit messages (e.g. `Fix log rotation bug` not `fix stuff`).
+- Keep PRs focused — one feature or fix per PR.
+- If adding a new feature, update the documentation accordingly.
 ---
 
 ## License
