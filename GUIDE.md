@@ -1,4 +1,4 @@
-# LogX User Guide
+# LogX Complete User Guide
 
 This guide contains easy-to-understand examples explaining how to use each and every features of LogX
 
@@ -52,24 +52,24 @@ This guide contains easy-to-understand examples explaining how to use each and e
 
 ## Logx Integration
 
+- LogX is an user-friendly logging library, developed in C, for Linux (Debian) based systems. 
+- Before integrating LogX into your project, It is crucial that you must understand the core configuration structre that LogX uses behind the scenes. This let's you use LogX to its full potential and adjust it appropriately according to your project's logging requirements
+
 ### Understanding LogX Configuration
 
-- LogX uses the following configuration structure the let's you fine-tune the logging needs for your application.
-
 ```c
-typedef struct
-{
-    const char       *name;                   /* Name for the logger instance - just for identification purpose */
-    const char       *file_path;              /* Logfile path */
-    logx_level_t      console_level;          /* level threshold for console logging */
-    logx_level_t      file_level;             /* level threshold for file logging */
-    int               enable_console_logging; /* Enable / Disable console logging */
-    int               enable_file_logging;    /* Enable / Disable file logging */
-    int               enable_colored_logs;   /* Enable / Disable ANSI colored logs (Only visible in console logs) */
-    int               use_tty_detection;      /* Auto Enable / Disable colored logs based on TTY detection */
-    logx_rotate_cfg_t rotate;                 /* Control Log Rotation */
-    const char       *banner_pattern;         /* Configure Banner Pattern (Used in LOGX_BANNER() */
-    int               print_config;           /* Enable / Disable verbose print of LogX configuration that's chosen */
+typedef struct {
+    const char       *name;
+    const char       *file_path;
+    logx_level_t      console_level;
+    logx_level_t      file_level;
+    int               enable_console_logging;
+    int               enable_file_logging;
+    int               enable_colored_logs;
+    int               use_tty_detection;
+    logx_rotate_cfg_t rotate;
+    const char       *banner_pattern;
+    int               print_config;
 } logx_cfg_t;
 ```
 ---
