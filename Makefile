@@ -3,17 +3,70 @@
 # ======================================
 
 # ---- Project setup ----
-PROJECT     := LogX
 BUILD_DIR   := build
 CLANG_FORMAT := clang-format-14
-SRC_DIRS := src test examples
-PKG_MANAGER ?= apt
+LIB_NAME := liblogx
+RELEASES_DIR := releases
+
+# ---- Parse version from version.h ----
+MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' ./logx/version.h)
+MINOR 	:= $(shell grep -oP '(?<=#define LOGX_MINOR_VERSION )\d+' ./logx/version.h)
+PATCH 	:= $(shell grep -oP '(?<=#define LOGX_PATCH_VERSION )\d+' ./logx/version.h)
+VERSION := $(MAJOR).$(MINOR).$(PATCH)
+
+RELEASES_EXAMPLES_DIR := $(RELEASES_DIR)/$(VERSION)/examples
+RELEASES_BENCHMARKS_DIR := $(RELEASES_DIR)/$(VERSION)/benchmarks
 
 # ---- Documentattion ----
 DOXYFILE 	:= Doxyfile
 DOCS_DIR 	:= docs
 LATEX_DIR 	:= $(DOCS_DIR)/latex
 
+# ─────────────────────────────────────────────────────────────
+# newline trick — the blank line between define/endef is
+# critical; do not remove it
+# ─────────────────────────────────────────────────────────────
+define newline
+
+
+endef
+
+# File lists
+
+EXAMPLE_EXE_FILES := 						\
+	binary_string							\
+	default_settings						\
+	parsing_from_custom_file				\
+	parsing_from_default_file				\
+	passing_configuration					\
+	pause_resume_timer						\
+	stopwatch_timer							\
+	timer_auto
+
+BENCHMARK_EXE_FILES :=						\
+	console_logging							\
+	printf_logging							\
+
+# ─────────────────────────────────────────────────────────────
+# Helper: find and install a single file recursively
+#   Usage: $(call find_and_install,filename,dest_dir)
+# ─────────────────────────────────────────────────────────────
+define find_and_install
+	@{ \
+		matches=$$(find $(PROJECT_ROOT) -type f -name "$(1)" 2>/dev/null); \
+		if [ -z "$$matches" ]; then \
+			echo "  ✘ WARNING: $(1) not found, skipping"; \
+		else \
+			first=$$(echo "$$matches" | head -n 1); \
+			count=$$(echo "$$matches" | grep -c .); \
+			if [ "$$count" -gt 1 ]; then \
+				echo "  ⚠ WARNING: $(1) found in multiple locations, using first:"; \
+				echo "$$matches" | sed 's/^/      /'; \
+			fi; \
+			install -m 644 "$$first" "$(2)/$(1)" && echo "  ✔ $(1)"; \
+		fi; \
+	}
+endef
 
 # ==============================
 #default
@@ -43,7 +96,7 @@ verbose: ## Build with verbose output
 # Usage: make target TARGET=master_app
 # ==============================
 .PHONY: target
-target: ## Build specific target only (make target TARGET=webserver_api)
+target: ## Build specific target only (make target TARGET=logx)
 	cmake --build $(BUILD_DIR) --target $(TARGET)
 
 # ==============================
@@ -52,6 +105,7 @@ target: ## Build specific target only (make target TARGET=webserver_api)
 .PHONY: clean
 clean: clean_docs ## Clean and rebuild everything
 	rm -rf $(BUILD_DIR)
+	rm -rf $(RELEASES_DIR)
 
 # ==============================
 # Rebuild from scratch
@@ -131,10 +185,37 @@ deb: ## Generate .deb package
 # Install library
 # ==============================
 .PHONY: install
-install: format deb ## Install the deb package
+install: ## Install the deb package
 	@echo "📦 Installing Debian package..."
 	@sudo apt install --reinstall ./build/$(LIB_NAME)-$(VERSION).deb
 	@echo "✅ Installation complete."
+
+# ==============================
+# Uninstall library
+# ==============================
+.PHONY: uninstall
+uninstall: ## Uninstall the library
+	@echo "🗑️  Uninstalling $(LIB_NAME) version $(VERSION)..."
+	@sudo apt remove --purge -y $(LIB_NAME)
+	@echo "✅ Uninstallation complete."
+
+# ==============================
+# Create releases folder
+# ==============================
+.PHONY: release
+release: rebuild ## Create releases folder
+	@echo "📁 Creating releases folder..."
+	@mkdir -p $(RELEASES_DIR)
+	@mkdir -p $(RELEASES_DIR)/$(VERSION)
+	@mkdir -p $(RELEASES_EXAMPLES_DIR)
+	@mkdir -p $(RELEASES_BENCHMARKS_DIR)
+	@cp build/logx/$(LIB_NAME).so* $(RELEASES_DIR)/$(VERSION)/
+	@cp build/logx/$(LIB_NAME).a* $(RELEASES_DIR)/$(VERSION)/
+	@echo "📁 Copying example executables..."
+	$(foreach f,$(EXAMPLE_EXE_FILES),$(call find_and_install,$(f),$(RELEASES_EXAMPLES_DIR))$(newline))
+	@echo "📁 Copying benchmarks executables..."
+	$(foreach f,$(BENCHMARK_EXE_FILES),$(call find_and_install,$(f),$(RELEASES_BENCHMARKS_DIR))$(newline))
+	@echo "✅ Release folder created at $(RELEASES_DIR)/$(VERSION)/"
 
 # ==============================
 # Help

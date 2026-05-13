@@ -51,6 +51,9 @@ file(GLOB LOGX_PUBLIC_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/logx/*.h")
 # =====================================
 
 add_subdirectory(logx)
+add_subdirectory(tests)
+add_subdirectory(examples)
+add_subdirectory(benchmarks)
 
 # =====================================
 # CPack configuration

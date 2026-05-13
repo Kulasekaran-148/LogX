@@ -1,0 +1,2 @@
+add_subdirectory(console_logging)
+add_subdirectory(printf_logging)

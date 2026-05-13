@@ -83,7 +83,7 @@ typedef struct
 
 ```C
 #include <stdio.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 int main() {
     // Initialize logger
@@ -130,12 +130,12 @@ int main() {
 ```
 
 - All the abvoe MACROS are guarded with `#ifndef` which allows you to override them from your project code.
-- Only thing you need to do is to make sure you declare the MACRO you want to change before the line `#include <logx/logx.h>`.
+- Only thing you need to do is to make sure you declare the MACRO you want to change before the line `#include <logx.h>`.
 
 ### LogX Integration - Passing configuration
 
 ```c
-#include <logx/logx.h>
+#include <logx.h>
 #include <stdio.h>
 
 int main()
@@ -183,7 +183,7 @@ int main()
     3. Sets Default configuration.
 
 ```c
-#include <logx/logx.h>
+#include <logx.h>
 #include <stdio.h>
 
 int main()
@@ -214,7 +214,7 @@ int main()
     3. Sets Default configuration.
 
 ```c
-#include <logx/logx.h>
+#include <logx.h>
 #include <stdio.h>
 
 #define LOGX_CFG_FILE_PATH "./some_file_path" // file must be a valid YAML/JSON

@@ -1,0 +1,3 @@
+add_subdirectory(pause_resume_timer)
+add_subdirectory(stopwatch_timer)
+add_subdirectory(timer_auto)

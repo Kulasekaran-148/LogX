@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 int main()
 {

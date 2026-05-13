@@ -23,7 +23,7 @@
  *
  */
 
-#include <logx/logx.h>
+#include <logx.h>
 #include <stdio.h>
 
 int main()

@@ -54,6 +54,8 @@
 - Logfile compression
 - Multiple file logging
 - Syslog support
+- logger configuration from INI
+- Persisting logger configuration
 
 ---
 
@@ -149,7 +151,7 @@ Go to `./docs/latex/` and run make to generate the pdf documentation. It will be
 
 ```C
 #include <stdio.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 int main() {
     // Initialize logger

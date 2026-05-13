@@ -37,3 +37,24 @@ static const string_map_t g_tErrorcodesMap[] = {
     /* Directory */
     { ERR_DIRECTORY_CREATION_FAILED,   "ERR_DIRECTORY_CREATION_FAILED" },
 };
+
+static const char *get_string_from_map(int dwKey,
+                                       const string_map_t *ptMap,
+                                       size_t map_count,
+                                       const char *unknown_prefix)
+{
+    static __thread char buffer[64];
+
+    if(!ptMap) return "ptMap is NULL";
+
+    for (size_t i = 0; i < map_count; i++)
+    {
+        if (ptMap[i].dwKey == dwKey)
+            return ptMap[i].value;
+    }
+
+    if(unknown_prefix == NULL) return NULL;
+
+    snprintf(buffer, sizeof(buffer), "%s - %d", unknown_prefix, dwKey);
+    return buffer;
+}

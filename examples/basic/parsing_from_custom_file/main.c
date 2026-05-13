@@ -24,7 +24,7 @@
  */
 
 #include <stdio.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 /* User defined configuration file path */
 #define LOGX_CFG_FILEPATH "./config/logx_config.yml"

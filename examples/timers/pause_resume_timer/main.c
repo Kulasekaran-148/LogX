@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 int main(void)
 {

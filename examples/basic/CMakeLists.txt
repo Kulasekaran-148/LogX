@@ -1,0 +1,5 @@
+add_subdirectory(binary_string)
+add_subdirectory(default_settings)
+add_subdirectory(parsing_from_custom_file)
+add_subdirectory(parsing_from_default_file)
+add_subdirectory(passing_configuration)

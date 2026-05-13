@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <logx/logx.h>
+#include <logx.h>
 
 void log_messages(logx_t *logger, int limit) {
     LOGX_TIMER_AUTO(logger, "Console logging timer");
