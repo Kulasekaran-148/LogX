@@ -2,8 +2,8 @@
  * @file logx.c
  * @author Kulasekaran (kulasekaranslrk@gmail.com)
  * @brief Core logx source
- * @version 0.1
- * @date 2025-11-10
+ * @version 1.0
+ * @date 2026-05-16
  *
  * @copyright Copyright (c) 2025
  *
@@ -12,9 +12,9 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "logx.h"
-
 #include "logx_config_keys.h"
 #include "logx_defaults.h"
+#include "logx_errorcodes.h"
 
 #include <cJSON/cJSON.h>
 #include <errno.h>
@@ -73,137 +73,134 @@ static const char *LOGX_COLOR_TABLE[] = {
 /**
  * @brief Validates if the logx_rotate_type_t passed is valid or not
  *
- * @param[in] type rotate type to be validated
- * @return int 0 on Success, -1 on Failure
+ * @param[in] eRotateType rotate type to be validated
+ * @return int LOGX_ERR_SUCCESS on Success, LOGX_ERR_FAILURE on Failure
  */
-int is_valid_logx_rotate_type(logx_rotate_type_t type)
+static logx_errorcodes_t is_valid_logx_rotate_type(logx_rotate_type_t eRotateType)
 {
-    switch (type)
+    switch (eRotateType)
     {
-    case LOGX_ROTATE_NONE:
-    case LOGX_ROTATE_BY_SIZE:
-    case LOGX_ROTATE_BY_DATE:
-        return 0;
-    default:
-        return -1;
+        case LOGX_ROTATE_NONE:
+        case LOGX_ROTATE_BY_SIZE:
+        case LOGX_ROTATE_BY_DATE:
+            return LOGX_ERR_SUCCESS;
+        default:
+            return LOGX_ERR_FAILURE;
     }
-    return -1;
+    return LOGX_ERR_FAILURE;
 }
 
 /**
  * @brief Validates if the logx_level_t passed is valid or not
  *
- * @param[in] level logx level to be validated
- * @return int 0 on Success, -1 on Failure
+ * @param[in] eLogLevel logx level to be validated
+ * @return int LOGX_ERR_SUCCESS on Success, LOGX_ERR_FAILURE on Failure
  */
-int is_valid_logx_level(logx_level_t level)
+static logx_errorcodes_t is_valid_logx_level(logx_level_t eLogLevel)
 {
-    switch (level)
+    switch (eLogLevel)
     {
-    case LOGX_LEVEL_TRACE:
-    case LOGX_LEVEL_DEBUG:
-    case LOGX_LEVEL_BANNER:
-    case LOGX_LEVEL_INFO:
-    case LOGX_LEVEL_WARN:
-    case LOGX_LEVEL_ERROR:
-    case LOGX_LEVEL_FATAL:
-    case LOGX_LEVEL_OFF:
-        return 0;
-    default:
-        return -1;
+        case LOGX_LEVEL_TRACE:
+        case LOGX_LEVEL_DEBUG:
+        case LOGX_LEVEL_BANNER:
+        case LOGX_LEVEL_INFO:
+        case LOGX_LEVEL_WARN:
+        case LOGX_LEVEL_ERROR:
+        case LOGX_LEVEL_FATAL:
+        case LOGX_LEVEL_OFF:
+            return LOGX_ERR_SUCCESS;
+        default:
+            return LOGX_ERR_FAILURE;
     }
-    return -1;
+    return LOGX_ERR_FAILURE;
 }
 
 /**
  * @brief Converts a log level enum to its corresponding short string representation.
  *
- * This function maps a logx_level_t value to a three-character string used in log messages.
- * It is typically used in the logging system to display the log level in a compact format.
- *
- * @param level The log level to convert.
- *
- * @return const char* Short string representing the log level. Never NULL.
+ * @param[in] eLogLevel The log level to convert.
+ * @return const char* Short string representing the log level
  */
-const char *logx_level_to_string(logx_level_t level)
+static const char *logx_level_to_string(logx_level_t eLogLevel)
 {
-    switch (level)
+    switch (eLogLevel)
     {
-    case LOGX_LEVEL_TRACE:
-        return "TRC";
-    case LOGX_LEVEL_DEBUG:
-        return "DBG";
-    case LOGX_LEVEL_INFO:
-        return "INF";
-    case LOGX_LEVEL_WARN:
-        return "WRN";
-    case LOGX_LEVEL_ERROR:
-        return "ERR";
-    case LOGX_LEVEL_BANNER:
-        return "BNR";
-    case LOGX_LEVEL_FATAL:
-        return "FTL";
-    default:
-        return "MSC";
+        case LOGX_LEVEL_TRACE:
+            return "TRC";
+        case LOGX_LEVEL_DEBUG:
+            return "DBG";
+        case LOGX_LEVEL_INFO:
+            return "INF";
+        case LOGX_LEVEL_WARN:
+            return "WRN";
+        case LOGX_LEVEL_ERROR:
+            return "ERR";
+        case LOGX_LEVEL_BANNER:
+            return "BNR";
+        case LOGX_LEVEL_FATAL:
+            return "FTL";
+        default:
+            return "ukwn";
     }
 }
 
 /**
  * @brief Converts a log rotate type enum to its corresponding string representation.
  *
- * This function maps a logx_rotate_type_t value to a string used in log messages.
- *
- * @param[in] type The log rotate type to convert.
- *
- * @return const char* string representing the log rotate type. Never NULL.
+ * @param[in] eRotateType The log rotate type to convert.
+ * @return const char* string representing the log rotate type
  */
-const char *logx_rotate_type_to_string(logx_rotate_type_t type)
+static const char *logx_rotate_type_to_string(logx_rotate_type_t eRotateType)
 {
-    switch (type)
+    switch (eRotateType)
     {
-    case LOGX_ROTATE_NONE:
-        return "None";
-    case LOGX_ROTATE_BY_SIZE:
-        return "By Size";
-    case LOGX_ROTATE_BY_DATE:
-        return "By Date";
-    default:
-        return "MSC";
+        case LOGX_ROTATE_NONE:
+            return "None";
+        case LOGX_ROTATE_BY_SIZE:
+            return "By Size";
+        case LOGX_ROTATE_BY_DATE:
+            return "By Date";
+        default:
+            return "ukwn";
     }
 }
 
 /**
- * @brief Helper function that returns a string "Enabled"
- * if the value is 1, else "Disabled"
+ * @brief Helper: return "Enabled/Disabled" based on value
  *
- * @param[in] val Value to be checked
- * @return const char* "Enabled" if val is 1, "Disabled" if val is 0
+ * @param[in] bEnable Value to be checked
+ * @return const char* "Enabled" or "Disabled"
  */
-static const char *logx_check(int val)
+static const char *logx_check(int bEnable)
 {
-    if (val)
+    if (bEnable)
         return "Enabled";
     else
         return "Disabled";
 }
 
-/*
- * Format a timestamp into `out`.
+/**
+ * @brief Get current timestamp
  *
- *   out    - destination buffer
- *   out_sz - size of destination buffer (recommend >= 64)
- *   tv     - timeval to format; if NULL, gettimeofday() is called internally
- *   fmt    - one of the TS_FMT_* constants
- *
- * Returns the number of bytes written (excluding NUL), or -1 on error.
+ * @param[out] pszBuffer - Buffer in which timestamp needs to be filled
+ * @param[in] dwBufferLen - Timestamp buffer len
+ * @param[out] tv - Timeval object
+ * @param[in] eTimestampFormat - Timestamp format
+ * @return logx_errorcodes_t LOGX_ERR_SUCCESS on success
  */
-int now_ts(char *out, size_t out_sz, struct timeval *tv, ts_fmt_t fmt)
+static logx_errorcodes_t get_timestamp(char *pszBuffer, size_t dwBufferLen, struct timeval *tv,
+                                       timestamp_format_t eTimestampFormat)
 {
-    if (!out || out_sz == 0)
-        return -1;
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+    struct timeval ttmp;
+
+    if (!pszBuffer || dwBufferLen == 0)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
 
     /* Capture time if not supplied */
-    struct timeval ttmp;
     if (!tv)
     {
         gettimeofday(&ttmp, NULL);
@@ -213,141 +210,129 @@ int now_ts(char *out, size_t out_sz, struct timeval *tv, ts_fmt_t fmt)
     int ms = (int)(tv->tv_usec / 1000);
     int us = (int)(tv->tv_usec);
 
-    switch (fmt)
+    switch (eTimestampFormat)
     {
 
-    case LOGX_TS_FMT_EPOCH_S:
-        return snprintf(out, out_sz, "%lld", (long long)tv->tv_sec);
+        case LOGX_TS_FMT_EPOCH_S:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec);
+            break;
+        }
 
-    case LOGX_TS_FMT_EPOCH_MS:
-        return snprintf(out, out_sz, "%lld", (long long)tv->tv_sec * 1000 + ms);
+        case LOGX_TS_FMT_EPOCH_MS:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec * 1000 + ms);
+            break;
+        }
 
-    case LOGX_TS_FMT_EPOCH_US:
-        return snprintf(out, out_sz, "%lld", (long long)tv->tv_sec * 1000000 + us);
+        case LOGX_TS_FMT_EPOCH_US:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec * 1000000 + us);
+            break;
+        }
 
-    case LOGX_TS_FMT_LOCAL:
-    {
-        struct tm tm;
-        localtime_r(&tv->tv_sec, &tm);
-        return snprintf(out, out_sz, "%04d-%02d-%02d %02d:%02d:%02d.%03d", tm.tm_year + 1900,
-                        tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+        case LOGX_TS_FMT_LOCAL:
+        {
+            struct tm tm;
+            localtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_UTC:
+        {
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02d %02d:%02d:%02d.%03dZ",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_ISO8601:
+        {
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_RFC2822:
+        {
+            static const char *days[]   = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+            static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%s, %02d %s %04d %02d:%02d:%02d +0000",
+                     days[tm.tm_wday], tm.tm_mday, months[tm.tm_mon], tm.tm_year + 1900, tm.tm_hour,
+                     tm.tm_min, tm.tm_sec);
+            break;
+        }
+
+        default:
+        {
+            pszBuffer[0] = '\0';
+            eErr         = LOGX_ERR_FAILURE;
+        }
     }
-
-    case LOGX_TS_FMT_UTC:
-    {
-        struct tm tm;
-        gmtime_r(&tv->tv_sec, &tm);
-        return snprintf(out, out_sz, "%04d-%02d-%02d %02d:%02d:%02d.%03dZ", tm.tm_year + 1900,
-                        tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
-    }
-
-    case LOGX_TS_FMT_ISO8601:
-    {
-        struct tm tm;
-        gmtime_r(&tv->tv_sec, &tm);
-        return snprintf(out, out_sz, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", tm.tm_year + 1900,
-                        tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
-    }
-
-    case LOGX_TS_FMT_RFC2822:
-    {
-        static const char *days[]   = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-        static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-        struct tm tm;
-        gmtime_r(&tv->tv_sec, &tm);
-        return snprintf(out, out_sz, "%s, %02d %s %04d %02d:%02d:%02d +0000", days[tm.tm_wday],
-                        tm.tm_mday, months[tm.tm_mon], tm.tm_year + 1900, tm.tm_hour, tm.tm_min,
-                        tm.tm_sec);
-    }
-
-    default:
-        /* Unknown format — emit empty string and signal error */
-        out[0] = '\0';
-        return -1;
-    }
+END:
+    return eErr;
 }
 
 /**
- * @brief Acquire an exclusive advisory lock on a file descriptor using flock().
- *
- * @param fd File descriptor to lock.
- * @return int 0 on success, -1 on failure (invalid fd or flock error).
- *
- * @note This uses advisory locking. Other processes must also use flock()
- *       for the lock to be respected.
- */
-int file_lock_ex(int fd)
-{
-    if (fd < 0)
-        return -1;
-    if (flock(fd, LOCK_EX) == -1)
-        return -1;
-    return 0;
-}
-
-/**
- * @brief Release a previously acquired advisory lock on a file descriptor.
- *
- * @param fd File descriptor to unlock.
- * @return int 0 on success, -1 on failure (invalid fd or flock error).
- *
- * @note Only unlocks descriptors previously locked with flock().
- */
-int file_lock_un(int fd)
-{
-    if (fd < 0)
-        return -1;
-    if (flock(fd, LOCK_UN) == -1)
-        return -1;
-    return 0;
-}
-
-/**
- * @brief Rotate log files, maintaining a maximum number of backups.
+ * @brief Function that rotates log files, maintaining a maximum number of backups.
  *
  * This function implements a simple log rotation mechanism by renaming existing
- * log files with numeric suffixes and truncating the main log file if max_backups <= 0.
+ * log files with numeric suffixes.
  *
- * @param path Path to the main log file.
- * @param max_backups Maximum number of backup files to retain. If <= 0, the main
- *                    file is simply truncated and no rotation occurs.
+ * @param[in] path         Path to the main log file.
+ * @param[in] dwMaxBackups Maximum number of backup files to retain.
  *
- * @return int 0 on success, -1 on failure (e.g., invalid path).
+ * @return logx_errorcodes_t
  *
- * @details
- * - Existing backup files are renamed: path.1 -> path.2, ..., path.(max_backups-1) ->
- * path.max_backups.
- * - The current log file is renamed to path.1.
- * - The oldest backup (path.max_backups) is deleted if it exists.
- * - If max_backups <= 0, the current log file is truncated instead of rotated.
+ * @note For e.g: Consider dwMaxBackups = 3 and log path is ./test.log.
+ *
+ *       - When rotation happens, test.log --> test.log.1 and a new empty test.log is created
+ *
+ *       - When next rotation happens, test.log.1 --> test.log.2, test.log --> test.log.1 and a new
+ * test.log is created
+ *
+ *       - When next rotation happens, test.log.2 is deleted, test.log.1 --> test.log.2, test.log
+ * --> test.log.1 and a new test.log is created
  */
-int rotate_files(const char *path, int max_backups)
+static logx_errorcodes_t rotate_files(const char *path, int dwMaxBackups)
 {
-    char oldname[1024];
-    char newname[1024];
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+    int fd                 = -1;
+    char oldname[LOGX_LOG_FILE_PATH_MAX_LEN_BYTES];
+    char newname[LOGX_LOG_FILE_PATH_MAX_LEN_BYTES];
 
     if (!path)
     {
-        return -1;
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
     }
 
-    if (max_backups <= 0)
+    if (dwMaxBackups <= 0)
     {
         /* truncate current file */
-        int fd = open(path, O_WRONLY | O_TRUNC);
-        if (fd >= 0)
+        fd = open(path, O_WRONLY | O_TRUNC);
+        if (fd < 0)
         {
-            close(fd);
+            eErr = LOGX_ERR_FD_OPEN_FAILED;
         }
-
-        return 0;
+        goto END;
     }
 
-    snprintf(oldname, sizeof(oldname), "%s.%d", path, max_backups);
+    snprintf(oldname, sizeof(oldname), "%s.%d", path, dwMaxBackups);
     unlink(oldname); /* ignore errors */
 
-    for (int i = max_backups - 1; i >= 0; --i)
+    for (int i = dwMaxBackups - 1; i >= 0; --i)
     {
         if (i == 0)
         {
@@ -361,69 +346,172 @@ int rotate_files(const char *path, int max_backups)
         /* rename will fail if oldname doesn't exist - that's fine */
         rename(oldname, newname);
     }
-    return 0;
+
+END:
+    if (fd > 0)
+    {
+        close(fd);
+    }
+    return eErr;
 }
 
-/* Check rotation conditions and perform rotation if needed. Must be called with mutex held. */
-static int check_and_rotate_locked(logx_t *l)
+/**
+ * @brief Helper function that performs log rotation on the active log file.
+ *
+ * Flushes and closes the current log file, rotates the backup files via
+ * rotate_files(), then reopens the log file for appending. The file is
+ * exclusively locked for the duration of the operation to prevent concurrent
+ * writes during rotation.
+ *
+ * @param[in,out] ptLogger Pointer to the logger instance. Must not be NULL.
+ *                         On successful rotation, ptLogger->fp and ptLogger->fd
+ *                         are updated to the newly opened file.
+ *
+ * @return LOGX_ERR_SUCCESS        Rotation completed and file reopened successfully.
+ * @return LOGX_ERR_INVALID_ARG    ptLogger is NULL.
+ * @return LOGX_ERR_FILE_OPEN_FAILED File could not be reopened after rotation;
+ *                                  file logging is automatically disabled on
+ *                                  the logger instance.
+ *
+ * @note If the file cannot be reopened after rotation, file logging is
+ *       disabled (enable_file_logging = 0) to prevent further failed writes.
+ */
+static logx_errorcodes_t process_log_rotation(logx_t *ptLogger)
 {
-    if (!l || !l->cfg.enable_file_logging || !l->cfg.file_path)
-        return 0;
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
 
-    if (l->cfg.rotate.type == LOGX_ROTATE_BY_DATE)
+    if(!ptLogger)
     {
-        time_t t = time(NULL);
-        struct tm tm;
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    /* lock file */
+    if (ptLogger->fd >= 0)
+    {
+        exclusive_flock(ptLogger->fd);
+    }
+
+    /* flush contents */
+    if (ptLogger->fp)
+    {
+        fflush(ptLogger->fp);
+    }
+
+    /* perform log rotation */
+    if ((eErr = rotate_files(ptLogger->cfg.file_path, ptLogger->cfg.rotate.max_backups)) !=
+        LOGX_ERR_SUCCESS)
+    {
+        goto END;
+    }
+
+    /* close file */
+    if (ptLogger->fp)
+    {
+        fclose(ptLogger->fp);
+    }
+
+    /* reopen file */
+    ptLogger->fp = fopen(ptLogger->cfg.file_path, "a");
+    if (ptLogger->fp)
+    {
+        ptLogger->fd = fileno(ptLogger->fp);
+    }
+    else
+    {
+        ptLogger->cfg.enable_file_logging = 0; /* disable file logging if we can't open file */
+        unlock_flock(ptLogger->fd);
+        ptLogger->fd = -1;
+        eErr = LOGX_ERR_FILE_OPEN_FAILED;
+        goto END;
+    }
+
+    /* unlock file */
+    if (ptLogger->fd >= 0)
+    {
+        unlock_flock(ptLogger->fd);
+    }
+
+END:
+    return eErr;
+}
+
+/**
+ * @brief Function that checks if log rotation is needed and performs log rotation
+ *
+ * @param[in] ptLogger - Pointer to the logger instance
+ * @return logx_errorcodes_t
+ */
+static logx_errorcodes_t check_and_rotate_log(logx_t *ptLogger)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+    time_t t               = time(NULL);
+    struct tm tm;
+    char today[16];
+    struct stat st;
+
+    if (!ptLogger || !ptLogger->cfg.enable_file_logging || !ptLogger->cfg.file_path)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    if (ptLogger->cfg.rotate.type == LOGX_ROTATE_BY_DATE)
+    {
         localtime_r(&t, &tm);
-        char today[16];
         snprintf(today, sizeof(today), "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
                  tm.tm_mday);
-        if (strcmp(today, l->current_date) != 0)
+        if (strcmp(today, ptLogger->current_date) != 0)
         {
-            /* rotate */
-            if (l->fd >= 0)
+            if((eErr = process_log_rotation(ptLogger)) != LOGX_ERR_SUCCESS)
             {
-                file_lock_ex(l->fd);
+                goto END;
             }
-            if (l->fp)
-                fflush(l->fp);
-            rotate_files(l->cfg.file_path, l->cfg.rotate.max_backups);
-            /* reopen file */
-            if (l->fp)
-                fclose(l->fp);
-            l->fp = fopen(l->cfg.file_path, "a");
-            if (l->fp)
-                l->fd = fileno(l->fp);
-            if (l->fd >= 0)
-                file_lock_un(l->fd);
-            strncpy(l->current_date, today, sizeof(l->current_date));
+
+            /* update current date */
+            strncpy(ptLogger->current_date, today, sizeof(ptLogger->current_date));
         }
     }
-    else if (l->cfg.rotate.type == LOGX_ROTATE_BY_SIZE)
+    else if (ptLogger->cfg.rotate.type == LOGX_ROTATE_BY_SIZE)
     {
-        if (l->fd >= 0)
+        if (ptLogger->fd >= 0)
         {
-            struct stat st;
-            if (fstat(l->fd, &st) == 0)
+            if (fstat(ptLogger->fd, &st) == 0)
             {
-                if ((size_t)st.st_size >= l->cfg.rotate.size_mb * (1024 * 1024))
+                if ((size_t)st.st_size >= CONVERT_TO_MB_TO_BYTES(ptLogger->cfg.rotate.size_mb))
                 {
-                    file_lock_ex(l->fd);
-                    if (l->fp)
-                        fflush(l->fp);
-                    rotate_files(l->cfg.file_path, l->cfg.rotate.max_backups);
-                    if (l->fp)
-                        fclose(l->fp);
-                    l->fp = fopen(l->cfg.file_path, "a");
-                    if (l->fp)
-                        l->fd = fileno(l->fp);
-                    if (l->fd >= 0)
-                        file_lock_un(l->fd);
+                    if((eErr = process_log_rotation(ptLogger)) != LOGX_ERR_SUCCESS)
+                    {
+                        goto END;
+                    }
                 }
             }
+            else
+            {
+                eErr = LOGX_ERR_FSTAT_FAILED;
+                goto END;
+            }
+        }
+        else
+        {
+            eErr = LOGX_ERR_INVALID_FD;
+            goto END;
         }
     }
-    return 0;
+
+    else if (ptLogger->cfg.rotate.type == LOGX_ROTATE_NONE)
+    {
+        ;
+    }
+
+    else
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+END:
+    return eErr;
 }
 
 /**
@@ -431,14 +519,12 @@ static int check_and_rotate_locked(logx_t *l)
  *
  * @param[in] cfg Pointer to the logx_cfg_t type configuration object to which default configuration
  * settings will get written to. This object will be used by logx_t type logx logger instance
- *
- * @see logx_t
- * @see logx_cfg_t
+ * @return logx_errorcodes_t LOGX_ERR_SUCCESS on success, LOGX_ERR_INVALID_ARG if cfg is NULL
  */
-static void logx_set_default_cfg(logx_cfg_t *cfg)
+static logx_errorcodes_t logx_set_default_cfg(logx_cfg_t *cfg)
 {
     if (!cfg)
-        return;
+        return LOGX_ERR_INVALID_ARG;
 
     memset(cfg, 0, sizeof(*cfg)); // ensure no garbage
 
@@ -456,6 +542,8 @@ static void logx_set_default_cfg(logx_cfg_t *cfg)
     cfg->rotate.interval_days   = LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS;
     cfg->banner_pattern         = LOGX_DEFAULT_CFG_BANNER_PATTERN;
     cfg->print_config           = LOGX_DEFAULT_CFG_PRINT_CONFIG;
+    cfg->ts_format              = LOGX_DEFAULT_CFG_TIMESTAMP_FORMAT;
+    return LOGX_ERR_SUCCESS;
 }
 
 /**
@@ -560,7 +648,7 @@ int logx_parse_json_config(const char *filepath, logx_cfg_t *cfg)
     else if (strcasecmp(val, "ERROR") == 0)
         cfg->console_level = LOGX_LEVEL_ERROR;
     else if (strcasecmp(val, "FATAL") == 0)
-        cfg->file_level = LOGX_LEVEL_FATAL;
+        cfg->console_level = LOGX_LEVEL_FATAL;
     else
     {
         fprintf(stderr, "[LogX] Invalid console_level: %s → Using default.\n", val);
@@ -1284,7 +1372,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     if (write_file)
     {
         if (logger->fd >= 0)
-            file_lock_ex(logger->fd);
+            exclusive_flock(logger->fd);
 
         if (logger->fp)
         {
@@ -1306,7 +1394,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
         }
 
         if (logger->fd >= 0)
-            file_lock_un(logger->fd);
+            unlock_flock(logger->fd);
     }
 
     // pthread_mutex_unlock(&logger->lock);

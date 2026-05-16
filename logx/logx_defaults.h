@@ -77,6 +77,10 @@ extern "C"
 #define LOGX_DEFAULT_CFG_PRINT_CONFIG true
 #endif
 
+#ifndef LOGX_DEFAULT_CFG_TIMESTAMP_FORMAT
+#define LOGX_DEFAULT_CFG_TIMESTAMP_FORMAT LOGX_TS_FMT_LOCAL
+#endif
+
 /* Default LogX Configuration file paths */
 #define LOGX_DEFAULT_CFG_YML_FILEPATH  "./logx_cfg.yml"
 #define LOGX_DEFAULT_CFG_YAML_FILEPATH "./logx_cfg.yaml"

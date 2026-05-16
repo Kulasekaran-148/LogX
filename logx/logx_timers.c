@@ -352,7 +352,7 @@ void logx_timer_stop(logx_t *logger, const char *name)
     if (logger->cfg.enable_file_logging)
     {
         if (logger->fd >= 0)
-            file_lock_ex(logger->fd);
+            exclusive_flock(logger->fd);
 
         if (logger->fp)
         {

@@ -253,7 +253,7 @@ int logx_rotate_now(logx_t *logger)
     {
         if (logger->fd >= 0)
         {
-            file_lock_ex(logger->fd);
+            exclusive_flock(logger->fd);
         }
 
         if (logger->fp)
@@ -277,7 +277,7 @@ int logx_rotate_now(logx_t *logger)
 
         if (logger->fd >= 0)
         {
-            file_lock_un(logger->fd);
+            unlock_flock(logger->fd);
         }
     }
     pthread_mutex_unlock(&logger->lock);

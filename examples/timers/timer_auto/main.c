@@ -22,21 +22,21 @@ void auto_timer(logx_t *logger, int wait_time)
 
     switch (wait_time)
     {
-    case 1:
-        sleep(1);
-        return;
+        case 1:
+            sleep(1);
+            return;
 
-    case 2:
-        sleep(2);
-        return;
+        case 2:
+            sleep(2);
+            return;
 
-    case 3:
-        sleep(3);
-        return;
+        case 3:
+            sleep(3);
+            return;
 
-    default:
-        sleep(1);
-        return;
+        default:
+            sleep(1);
+            return;
     }
 }
 

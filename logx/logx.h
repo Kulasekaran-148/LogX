@@ -26,6 +26,10 @@ extern "C"
 {
 #endif
 
+#define LOGX_LOG_FILE_PATH_MAX_LEN_BYTES 1024
+
+#define CONVERT_MB_TO_BYTES(x) x * 1024 * 1024
+
 #ifndef LOGX_MAX_TIMERS
 #define LOGX_MAX_TIMERS 5
 #endif
@@ -74,24 +78,24 @@ extern "C"
         LOGX_TS_FMT_EPOCH_US, /* 1747384321123456          (Unix microseconds)              */
         LOGX_TS_FMT_ISO8601,  /* 2026-05-16T08:32:01.123Z  (ISO 8601 / RFC 3339)           */
         LOGX_TS_FMT_RFC2822,  /* Sat, 16 May 2026 08:32:01 +0000                           */
-    } ts_fmt_t;
+    } timestamp_format_t;
 
     /* Logger configuration passed to create function */
     /* When you add new members here, make sure to update the list in logx_config_key.h */
     typedef struct
     {
-        const char *name;           /* logical name of logger (used in prefix) */
-        const char *file_path;      /* if NULL then file logging disabled */
-        logx_level_t console_level; /* level threshold for console */
-        logx_level_t file_level;    /* level threshold for file */
-        int enable_console_logging; /* 0/1 */
-        int enable_file_logging;    /* 0/1 */
-        int enable_colored_logs;    /* 0/1 */
-        int use_tty_detection;      /* if 1, detect isatty and disable colors for non-ttys */
-        logx_rotate_cfg_t rotate;   /* rotation options */
-        const char *banner_pattern; /* Banner pattern */
-        int print_config;           /* 0/1 */
-        ts_fmt_t ts_format;         /* Timestamp format */
+        const char *name;             /* logical name of logger (used in prefix) */
+        const char *file_path;        /* if NULL then file logging disabled */
+        logx_level_t console_level;   /* level threshold for console */
+        logx_level_t file_level;      /* level threshold for file */
+        int enable_console_logging;   /* 0/1 */
+        int enable_file_logging;      /* 0/1 */
+        int enable_colored_logs;      /* 0/1 */
+        int use_tty_detection;        /* if 1, detect isatty and disable colors for non-ttys */
+        logx_rotate_cfg_t rotate;     /* rotation options */
+        const char *banner_pattern;   /* Banner pattern */
+        int print_config;             /* 0/1 */
+        timestamp_format_t ts_format; /* Timestamp format */
     } logx_cfg_t;
 
     /* Timer object */
@@ -207,10 +211,10 @@ extern "C"
     int is_valid_logx_rotate_type(logx_rotate_type_t type);
 
     /* Helper: Locks the fd using flock */
-    int file_lock_ex(int fd);
+    int exclusive_flock(int fd);
 
     /* Helper: Unlocks the fd */
-    int file_lock_un(int fd);
+    int unlock_flock(int fd);
 
     /* Helper: Rotates log files */
     int rotate_files(const char *path, int max_backups);
