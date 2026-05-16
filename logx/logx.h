@@ -218,6 +218,9 @@ extern "C"
     /* Helper: LOGX_TIMER_AUTO clean up function */
     void logx_timer_auto_cleanup(logx_timer_t **t);
 
+    /* Helper: Checks if enough time has passed since the last logged message */
+    static inline int logx_freq_check(int sec, time_t *last_logged);
+
 /**
  * @brief Automatically starts-stops a timer when the function returns
  * @note __attribute__((cleanup)) is a compiler extension that is available only in GCC & Clang.
@@ -251,8 +254,77 @@ extern "C"
 #define LOGX_FATAL(logger, fmt, ...) \
     logx_log((logger), LOGX_LEVEL_FATAL, __FILE__, __func__, __LINE__, (fmt), ##__VA_ARGS__)
 
+#define LOGX_FREQ(sec, last_logged) logx_freq_check((sec), &(last_logged))
+
+#define LOGX_TRACE_FREQ(logger, sec, fmt, ...)          \
+    do                                                  \
+    {                                                   \
+        static time_t _last = 0;                        \
+        if (LOGX_FREQ((sec), _last))                    \
+            LOGX_TRACE((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_DEBUG_FREQ(logger, sec, fmt, ...)          \
+    do                                                  \
+    {                                                   \
+        static time_t _last = 0;                        \
+        if (LOGX_FREQ((sec), _last))                    \
+            LOGX_DEBUG((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_INFO_FREQ(logger, sec, fmt, ...)          \
+    do                                                 \
+    {                                                  \
+        static time_t _last = 0;                       \
+        if (LOGX_FREQ((sec), _last))                   \
+            LOGX_INFO((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_WARN_FREQ(logger, sec, fmt, ...)          \
+    do                                                 \
+    {                                                  \
+        static time_t _last = 0;                       \
+        if (LOGX_FREQ((sec), _last))                   \
+            LOGX_WARN((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_ERROR_FREQ(logger, sec, fmt, ...)          \
+    do                                                  \
+    {                                                   \
+        static time_t _last = 0;                        \
+        if (LOGX_FREQ((sec), _last))                    \
+            LOGX_ERROR((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_FATAL_FREQ(logger, sec, fmt, ...)          \
+    do                                                  \
+    {                                                   \
+        static time_t _last = 0;                        \
+        if (LOGX_FREQ((sec), _last))                    \
+            LOGX_FATAL((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
+#define LOGX_BANNER_FREQ(logger, sec, fmt, ...)          \
+    do                                                   \
+    {                                                    \
+        static time_t _last = 0;                         \
+        if (LOGX_FREQ((sec), _last))                     \
+            LOGX_BANNER((logger), (fmt), ##__VA_ARGS__); \
+    } while (0)
+
 #ifdef __cplusplus
 }
 #endif
+
+static inline int logx_freq_check(int sec, time_t *last_logged)
+{
+    time_t _now = time(NULL);
+    if ((_now - *last_logged) >= sec)
+    {
+        *last_logged = _now;
+        return 1;
+    }
+    return 0;
+}
 
 #endif
