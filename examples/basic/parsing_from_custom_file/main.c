@@ -38,6 +38,11 @@ int main()
         return -1;
     }
     LOGX_BANNER(logger, "Welcome to LogX Logging");
-    logx_destroy(logger);
+
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }

@@ -44,7 +44,9 @@ EXAMPLE_EXE_FILES := 						\
 	passing_configuration					\
 	pause_resume_timer						\
 	stopwatch_timer							\
-	timer_auto
+	timer_auto								\
+	logx_rate_limiting						\
+	ts_format_change	
 
 BENCHMARK_EXE_FILES :=						\
 	console_logging							\

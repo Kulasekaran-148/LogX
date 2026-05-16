@@ -65,6 +65,10 @@ int main(void)
     // stop the timer
     logx_timer_stop(logger, "pause_resume_timer");
 
-    logx_destroy(logger);
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }

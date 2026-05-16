@@ -53,5 +53,10 @@ int main(void)
     // stop the timer
     logx_timer_stop(logger, "timer name");
 
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }

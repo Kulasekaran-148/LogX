@@ -26,6 +26,10 @@ int main()
     LOGX_DEBUG(logger, "This is a debug message");
 
     // Destroy logger to clean up resources
-    logx_destroy(logger);
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }

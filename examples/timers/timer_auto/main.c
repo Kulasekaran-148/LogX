@@ -71,6 +71,10 @@ int main(void)
     LOGX_BANNER(logger, "LOGX_TIMER_AUTO example");
     auto_timer(logger, 1);
 
-    logx_destroy(logger);
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }

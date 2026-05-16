@@ -17,5 +17,10 @@ int main()
         sleep(1);
     }
 
+    if (logger)
+    {
+        logx_destroy(logger);
+    }
+
     return 0;
 }
