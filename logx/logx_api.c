@@ -13,14 +13,17 @@
  * changed
  * @param[in] level specifies the logging level
  */
-void logx_set_console_logging_level(logx_t *logger, logx_level_t level) {
-    if (!logger) {
+void logx_set_console_logging_level(logx_t *logger, logx_level_t level)
+{
+    if (!logger)
+    {
         return;
     }
 
     if (is_valid_logx_level(level) == 0)
         ;
-    else {
+    else
+    {
         fprintf(stderr, "[LogX] %s: Error: Unknown logx_level - %d", __func__, (int)level);
         return;
     }
@@ -36,14 +39,17 @@ void logx_set_console_logging_level(logx_t *logger, logx_level_t level) {
  * @param[in] logger Pointer to the logx logger instance whose file logging level is to be changed
  * @param[in] level specifies the logging level
  */
-void logx_set_file_logging_level(logx_t *logger, logx_level_t level) {
-    if (!logger) {
+void logx_set_file_logging_level(logx_t *logger, logx_level_t level)
+{
+    if (!logger)
+    {
         return;
     }
 
     if (is_valid_logx_level(level) == 0)
         ;
-    else {
+    else
+    {
         fprintf(stderr, "[LogX] %s: Error: Unknown logx_level - %d", __func__, (int)level);
         return;
     }
@@ -59,8 +65,10 @@ void logx_set_file_logging_level(logx_t *logger, logx_level_t level) {
  * @param[in] logger Pointer to the logx logger instance for which the console logging is to be
  * enabled
  */
-void logx_set_console_logging(logx_t *logger) {
-    if (!logger) {
+void logx_set_console_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -75,8 +83,10 @@ void logx_set_console_logging(logx_t *logger) {
  * @param[in] logger Pointer to the logx logger instance for which the console logging is to be
  * disabled
  */
-void logx_disable_console_logging(logx_t *logger) {
-    if (!logger) {
+void logx_disable_console_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -91,19 +101,24 @@ void logx_disable_console_logging(logx_t *logger) {
  * @param logger Pointer to the logx logger instance for which the file logging is to be
  * enabled
  */
-void logx_enable_file_logging(logx_t *logger) {
-    if (!logger) {
+void logx_enable_file_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
     pthread_mutex_lock(&logger->lock);
-    if (!logger->cfg.file_path) {
+    if (!logger->cfg.file_path)
+    {
         /* cannot enable without path */
         /* must not use Logger to log the below message since we're already inside the logger */
         fprintf(stderr, "ERROR: cannot enable file logging without "
                         "valid file path\n");
         logger->cfg.enable_file_logging = 0;
-    } else {
+    }
+    else
+    {
         logger->cfg.enable_file_logging = 1;
     }
     pthread_mutex_unlock(&logger->lock);
@@ -115,8 +130,10 @@ void logx_enable_file_logging(logx_t *logger) {
  * @param logger Pointer to the logx logger instance for which the file logging is to be
  * disabled
  */
-void logx_disable_file_logging(logx_t *logger) {
-    if (!logger) {
+void logx_disable_file_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -131,8 +148,10 @@ void logx_disable_file_logging(logx_t *logger) {
  * @param[in] logger Pointer to the logx logger instance for which the colored logs is to be
  * enabled
  */
-void logx_enable_colored_logging(logx_t *logger) {
-    if (!logger) {
+void logx_enable_colored_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -147,8 +166,10 @@ void logx_enable_colored_logging(logx_t *logger) {
  * @param[in] logger Pointer to the logx logger instance for which the colored logs is to be
  * disabled
  */
-void logx_disable_colored_logging(logx_t *logger) {
-    if (!logger) {
+void logx_disable_colored_logging(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -163,8 +184,10 @@ void logx_disable_colored_logging(logx_t *logger) {
  * @param[in] logger Pointer to the logx logger instance for which the TTY detection is to be
  * enabled
  */
-void logx_enable_tty_detection(logx_t *logger) {
-    if (!logger) {
+void logx_enable_tty_detection(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -179,8 +202,10 @@ void logx_enable_tty_detection(logx_t *logger) {
  * @param[in] logger Pointer to the logx logger instance for which the TTY detection is to be
  * disabled
  */
-void logx_disable_tty_detection(logx_t *logger) {
-    if (!logger) {
+void logx_disable_tty_detection(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -196,8 +221,10 @@ void logx_disable_tty_detection(logx_t *logger) {
  * chnaged
  * @param[in] enable value to be set
  */
-void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type) {
-    if (!logger) {
+void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -212,36 +239,44 @@ void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type) {
  * @param[in] logger Pointer to the logger instance whose handled file needs to be rotated
  * @return int 0 on Success, -1 on Failure
  */
-int logx_rotate_now(logx_t *logger) {
+int logx_rotate_now(logx_t *logger)
+{
     int r = 0;
 
-    if (!logger) {
+    if (!logger)
+    {
         return -1;
     }
 
     pthread_mutex_lock(&logger->lock);
-    if (logger->cfg.enable_file_logging && logger->cfg.file_path) {
-        if (logger->fd >= 0) {
+    if (logger->cfg.enable_file_logging && logger->cfg.file_path)
+    {
+        if (logger->fd >= 0)
+        {
             file_lock_ex(logger->fd);
         }
 
-        if (logger->fp) {
+        if (logger->fp)
+        {
             fflush(logger->fp);
         }
 
         r = rotate_files(logger->cfg.file_path, logger->cfg.rotate.max_backups);
 
-        if (logger->fp) {
+        if (logger->fp)
+        {
             fclose(logger->fp);
         }
 
         logger->fp = fopen(logger->cfg.file_path, "a");
 
-        if (logger->fp) {
+        if (logger->fp)
+        {
             logger->fd = fileno(logger->fp);
         }
 
-        if (logger->fd >= 0) {
+        if (logger->fd >= 0)
+        {
             file_lock_un(logger->fd);
         }
     }
@@ -255,8 +290,10 @@ int logx_rotate_now(logx_t *logger) {
  * @param logger  Pointer to the logx logger instance for which the log file size is to be set
  * @param size_mb Size in MB
  */
-void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb) {
-    if (!logger) {
+void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -272,8 +309,10 @@ void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb) {
  * be set
  * @param max_backups Number of backups to keep
  */
-void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups) {
-    if (!logger) {
+void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -289,8 +328,10 @@ void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups) {
  * set
  * @param interval_days Interval in days
  */
-void logx_set_rotation_interval_days(logx_t *logger, int interval_days) {
-    if (!logger) {
+void logx_set_rotation_interval_days(logx_t *logger, int interval_days)
+{
+    if (!logger)
+    {
         return;
     }
 
@@ -304,8 +345,10 @@ void logx_set_rotation_interval_days(logx_t *logger, int interval_days) {
  *
  * @param logger Pointer to the logx logger instance for which print config is to be enabled
  */
-void logx_enable_print_config(logx_t *logger) {
-    if (!logger) {
+void logx_enable_print_config(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
     pthread_mutex_lock(&logger->lock);
@@ -318,8 +361,10 @@ void logx_enable_print_config(logx_t *logger) {
  *
  * @param logger Pointer to the logx logger instance for which print config is to be disabled
  */
-void logx_disable_print_config(logx_t *logger) {
-    if (!logger) {
+void logx_disable_print_config(logx_t *logger)
+{
+    if (!logger)
+    {
         return;
     }
     pthread_mutex_lock(&logger->lock);
@@ -334,24 +379,27 @@ void logx_disable_print_config(logx_t *logger) {
  * @param value 64-bit integer value to convert
  * @return const char* Pointer to the thread-local binary string representation
  */
-const char *logx_bin_str64_grouped_tls(uint64_t value) {
+const char *logx_bin_str64_grouped_tls(uint64_t value)
+{
     // 8 rotating buffers, each large enough for grouped 64-bit binary + NUL
-    enum {
+    enum
+    {
         BUF_COUNT = 8,
         BUF_SIZE  = 128
     };
 
     static _Thread_local char bufs[BUF_COUNT][BUF_SIZE];
-    static _Thread_local int  idx = 0;
+    static _Thread_local int idx = 0;
 
     char *out = bufs[idx];
     idx       = (idx + 1) % BUF_COUNT;
 
     char tmp[64 + 16];
-    int  pos = 0;
+    int pos = 0;
 
     // Build full 64-bit binary with nibble spaces
-    for (int i = 63; i >= 0; --i) {
+    for (int i = 63; i >= 0; --i)
+    {
         tmp[pos++] = (value & (1ULL << i)) ? '1' : '0';
         if (i % 4 == 0 && i != 0)
             tmp[pos++] = ' ';
@@ -360,21 +408,25 @@ const char *logx_bin_str64_grouped_tls(uint64_t value) {
 
     // Find first '1'
     int first_one = -1;
-    for (int i = 0; tmp[i]; ++i) {
-        if (tmp[i] == '1') {
+    for (int i = 0; tmp[i]; ++i)
+    {
+        if (tmp[i] == '1')
+        {
             first_one = i;
             break;
         }
     }
 
     // All zero → return one nibble
-    if (first_one == -1) {
+    if (first_one == -1)
+    {
         strcpy(out, "0000");
         return out;
     }
 
     // Snap to nibble boundary
-    while (first_one > 0 && tmp[first_one - 1] != ' ') first_one--;
+    while (first_one > 0 && tmp[first_one - 1] != ' ')
+        first_one--;
 
     if (tmp[first_one] == ' ')
         first_one++;

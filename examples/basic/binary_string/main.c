@@ -1,10 +1,11 @@
-#include <stdio.h>
 #include <logx.h>
+#include <stdio.h>
 
 int main()
 {
     logx_t *logger = logx_create(NULL);
-    if (!logger) {
+    if (!logger)
+    {
         fprintf(stderr, "Failed to create logger\n");
         return -1;
     }
@@ -18,6 +19,6 @@ int main()
     LOGX_DEBUG(logger, "Binary representation of %d is %s", -32768, LOGX_BIN_STR(-32768));
     LOGX_DEBUG(logger, "Binary representation of %u is %s", 4294967295u, LOGX_BIN_STR(4294967295u));
     LOGX_DEBUG(logger, "Binary representation of %d is %s", -2147483648, LOGX_BIN_STR(-2147483648));
-    
+
     return 0;
 }

@@ -35,9 +35,11 @@
  *         - `0` if `a < b`
  *         - `UINT64_MAX` on overflow
  */
-static uint64_t diff_ns(const struct timespec *a, const struct timespec *b) {
+static uint64_t diff_ns(const struct timespec *a, const struct timespec *b)
+{
     /* Check if a < b */
-    if ((a->tv_sec < b->tv_sec) || (a->tv_sec == b->tv_sec && a->tv_nsec < b->tv_nsec)) {
+    if ((a->tv_sec < b->tv_sec) || (a->tv_sec == b->tv_sec && a->tv_nsec < b->tv_nsec))
+    {
         return 0;
     }
 
@@ -47,21 +49,24 @@ static uint64_t diff_ns(const struct timespec *a, const struct timespec *b) {
     /* Handle nanosecond underflow */
     if (a->tv_nsec >= b->tv_nsec)
         nsec_diff = (uint64_t)(a->tv_nsec - b->tv_nsec);
-    else {
+    else
+    {
         /* Borrow 1 second */
         sec_diff -= 1;
         nsec_diff = (uint64_t)(a->tv_nsec + 1000000000ULL - b->tv_nsec);
     }
 
     /* Overflow check for multiplication */
-    if (sec_diff > (UINT64_MAX / 1000000000ULL)) {
+    if (sec_diff > (UINT64_MAX / 1000000000ULL))
+    {
         return UINT64_MAX; /* Overflow */
     }
 
     uint64_t result = sec_diff * 1000000000ULL;
 
     /* Final addition overflow check */
-    if (result > UINT64_MAX - nsec_diff) {
+    if (result > UINT64_MAX - nsec_diff)
+    {
         return UINT64_MAX;
     }
 
@@ -87,7 +92,8 @@ static uint64_t diff_ns(const struct timespec *a, const struct timespec *b) {
  *
  * @note If any output pointer is NULL, that component is ignored.
  */
-static void format_time(uint64_t ns, int *h, int *m, int *s, int *ms) {
+static void format_time(uint64_t ns, int *h, int *m, int *s, int *ms)
+{
     uint64_t ms_total = ns / 1000000ULL;
 
     *h = ms_total / (1000UL * 60UL * 60UL);
@@ -115,7 +121,8 @@ static void format_time(uint64_t ns, int *h, int *m, int *s, int *ms) {
  * @note The function assumes:
  *       - `logger->timers[i].name` is not NULL.
  */
-static int find_timer_index(logx_t *logger, const char *name) {
+static int find_timer_index(logx_t *logger, const char *name)
+{
     if (!logger || !name)
         return -1;
 
@@ -144,7 +151,8 @@ static int find_timer_index(logx_t *logger, const char *name) {
  * @note If `logger` or `name` is NULL, the function returns immediately.
  * @return Pointer to the started or resumed `logx_timer_t` instance,
  */
-logx_timer_t *logx_timer_start(logx_t *logger, const char *name) {
+logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
+{
     if (!logger || !name)
         return NULL;
 
@@ -153,11 +161,13 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name) {
     int idx = find_timer_index(logger, name);
 
     // If timer already exists
-    if (idx >= 0) {
+    if (idx >= 0)
+    {
         fprintf(stderr, "[LogX] Timer[%s] already exists !\n", logger->timers[idx].name);
         logx_timer_t *t = &logger->timers[idx];
 
-        if (t->running) {
+        if (t->running)
+        {
             // Already running
             pthread_mutex_unlock(&logger->lock);
             return t;
@@ -172,7 +182,8 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name) {
     }
 
     // Check if Max timer capacity reached
-    if (logger->timer_count >= LOGX_MAX_TIMERS) {
+    if (logger->timer_count >= LOGX_MAX_TIMERS)
+    {
         // No space – fail silently or log warning
         fprintf(stderr, "[LogX] Max timer capacity reached. Can't create new timer\n");
         pthread_mutex_unlock(&logger->lock);
@@ -210,21 +221,24 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name) {
  * @note Thread-safe: acquires `logger->lock`.
  * @note If `logger` or `name` is NULL, the function returns immediately.
  */
-void logx_timer_pause(logx_t *logger, const char *name) {
+void logx_timer_pause(logx_t *logger, const char *name)
+{
     if (!logger || !name)
         return;
 
     pthread_mutex_lock(&logger->lock);
 
     int idx = find_timer_index(logger, name);
-    if (idx < 0) {
+    if (idx < 0)
+    {
         pthread_mutex_unlock(&logger->lock);
         return;
     }
 
     logx_timer_t *t = &logger->timers[idx];
 
-    if (!t->running) {
+    if (!t->running)
+    {
         pthread_mutex_unlock(&logger->lock);
         return; // Already paused
     }
@@ -252,21 +266,24 @@ void logx_timer_pause(logx_t *logger, const char *name) {
  * @note Thread-safe: acquires `logger->lock`.
  * @note If `logger` or `name` is NULL, the function returns immediately.
  */
-void logx_timer_resume(logx_t *logger, const char *name) {
+void logx_timer_resume(logx_t *logger, const char *name)
+{
     if (!logger || !name)
         return;
 
     pthread_mutex_lock(&logger->lock);
 
     int idx = find_timer_index(logger, name);
-    if (idx < 0) {
+    if (idx < 0)
+    {
         pthread_mutex_unlock(&logger->lock);
         return;
     }
 
     logx_timer_t *t = &logger->timers[idx];
 
-    if (t->running) {
+    if (t->running)
+    {
         fprintf(stderr, "[LogX] Timer[%s] is already running\n", logger->timers[idx].name);
         pthread_mutex_unlock(&logger->lock);
         return; // Already running
@@ -298,23 +315,26 @@ void logx_timer_resume(logx_t *logger, const char *name) {
  *       On systems with high timer churn, consider a linked list instead.
  * @note If `logger` or `name` is NULL, or timer not found, the function returns immediately.
  */
-void logx_timer_stop(logx_t *logger, const char *name) {
+void logx_timer_stop(logx_t *logger, const char *name)
+{
     if (!logger || !name)
         return;
 
     pthread_mutex_lock(&logger->lock);
 
     int idx = find_timer_index(logger, name);
-    if (idx < 0) {
+    if (idx < 0)
+    {
         pthread_mutex_unlock(&logger->lock);
         return;
     }
 
-    logx_timer_t   *t = &logger->timers[idx];
+    logx_timer_t *t = &logger->timers[idx];
     struct timespec now;
 
     // If running, add the final duration
-    if (t->running) {
+    if (t->running)
+    {
         clock_gettime(CLOCK_MONOTONIC, &now);
         t->accumulated_ns += diff_ns(&now, &t->start);
     }
@@ -324,15 +344,18 @@ void logx_timer_stop(logx_t *logger, const char *name) {
     format_time(t->accumulated_ns, &h, &m, &s, &ms);
 
     // Log the time (adjust to your log function)
-    if (logger->cfg.enable_console_logging) {
+    if (logger->cfg.enable_console_logging)
+    {
         fprintf(stderr, "[LogX] Timer[%s] took %dh:%dm:%ds:%dms\n", t->name, h, m, s, ms);
     }
 
-    if (logger->cfg.enable_file_logging) {
+    if (logger->cfg.enable_file_logging)
+    {
         if (logger->fd >= 0)
             file_lock_ex(logger->fd);
 
-        if (logger->fp) {
+        if (logger->fp)
+        {
             fprintf(logger->fp, "[LogX] Timer[%s] took %dh:%dm:%ds:%dms\n", t->name, h, m, s, ms);
             fflush(logger->fp);
         }
@@ -340,15 +363,18 @@ void logx_timer_stop(logx_t *logger, const char *name) {
 
     // Remove timer by shifting array left
     /* FIX ME - is array shifting inefficient ? */
-    for (int i = idx; i < logger->timer_count - 1; i++) logger->timers[i] = logger->timers[i + 1];
+    for (int i = idx; i < logger->timer_count - 1; i++)
+        logger->timers[i] = logger->timers[i + 1];
 
     logger->timer_count--;
 
     pthread_mutex_unlock(&logger->lock);
 }
 
-void logx_timer_auto_cleanup(logx_timer_t **t) {
-    if (t && *t && (*t)->logger) {
+void logx_timer_auto_cleanup(logx_timer_t **t)
+{
+    if (t && *t && (*t)->logger)
+    {
         logx_timer_stop((*t)->logger, (*t)->name);
     }
 }

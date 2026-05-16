@@ -1,28 +1,34 @@
+#include <logx.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <logx.h>
 
-void log_messages(logx_t *logger, int limit) {
+void log_messages(logx_t *logger, int limit)
+{
     LOGX_TIMER_AUTO(logger, "Console logging timer");
-    for (int i = 0; i < limit; i++) {
+    for (int i = 0; i < limit; i++)
+    {
         LOGX_INFO(logger, "This is log message number: %d", i + 1);
     }
 }
 
-void printf_messages(logx_t *logger, int limit) {
+void printf_messages(logx_t *logger, int limit)
+{
     LOGX_TIMER_AUTO(logger, "Printf logging timer");
-    for (int i = 0; i < limit; i++) {
+    for (int i = 0; i < limit; i++)
+    {
         printf("This is printf message number: %d\n", i + 1);
     }
 }
 
 int main(int argc, char *argv[])
 {
-    int limit = 10000;  // default limit
+    int limit = 10000; // default limit
 
-    if (argc >= 2) {
+    if (argc >= 2)
+    {
         limit = atoi(argv[1]);
-        if (limit <= 0) {
+        if (limit <= 0)
+        {
             fprintf(stderr, "Invalid limit provided: %s\n", argv[1]);
             fprintf(stderr, "Usage: %s <limit>\n", argv[0]);
             return -1;
@@ -30,7 +36,8 @@ int main(int argc, char *argv[])
     }
 
     logx_t *logger = logx_create(NULL);
-    if (!logger) {
+    if (!logger)
+    {
         fprintf(stderr, "Failed to create logger instance\n");
         return -1;
     }

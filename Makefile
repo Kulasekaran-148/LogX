@@ -7,6 +7,9 @@ BUILD_DIR   := build
 CLANG_FORMAT := clang-format-14
 LIB_NAME := liblogx
 RELEASES_DIR := releases
+SRCS 	:= logx examples benchmarks tests
+FORMAT_FILES := $(shell find $(SRCS) -type f \( -name "*.c" -o -name "*.h" \))
+
 
 # ---- Parse version from version.h ----
 MAJOR 	:= $(shell grep -oP '(?<=#define LOGX_MAJOR_VERSION )\d+' ./logx/version.h)
@@ -133,6 +136,10 @@ format: ## Run clang-format on apps/ and lib/
 		fi; \
 		sudo apt install -y clang-format-14; \
 	fi
+	@if [ -z "$(FORMAT_FILES)" ]; then \
+        echo "No .c/.h files found - nothing to format."; \
+        exit 1; \
+    fi
 	@echo "Running $(CLANG_FORMAT)..."
 	@$(CLANG_FORMAT) -i $(FORMAT_FILES)
 	@echo "Formatting complete."
@@ -203,7 +210,7 @@ uninstall: ## Uninstall the library
 # Create releases folder
 # ==============================
 .PHONY: release
-release: rebuild ## Create releases folder
+release: format rebuild ## Create releases folder
 	@echo "📁 Creating releases folder..."
 	@mkdir -p $(RELEASES_DIR)
 	@mkdir -p $(RELEASES_DIR)/$(VERSION)

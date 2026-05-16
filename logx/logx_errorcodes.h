@@ -1,11 +1,12 @@
 #ifndef LOGX_ERRORCODES_H
 #define LOGX_ERRORCODES_H
 
-typedef enum {
+typedef enum
+{
     /* Generic */
     LOGX_ERR_FAILURE = -1,
     LOGX_ERR_SUCCESS = 0,
-    LOGX_ERR_INVALID_VALUE, 
+    LOGX_ERR_INVALID_VALUE,
     LOGX_ERR_OUT_OF_RANGE,
     LOGX_ERR_NO_MEM,
     LOGX_ERR_NULL_PTR,

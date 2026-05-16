@@ -15,7 +15,7 @@
 
 int main()
 {
-    logx_t    *logger;
+    logx_t *logger;
     logx_cfg_t cfg = {0};
 
     /* Logger Configuration */
@@ -23,14 +23,15 @@ int main()
     cfg.enable_console_logging = 1;
     cfg.enable_file_logging    = 1;
     cfg.file_path              = "./basic_example_passing_configuration.log";
-    cfg.enable_colored_logs   = 1;
+    cfg.enable_colored_logs    = 1;
     cfg.use_tty_detection      = 1;
     cfg.console_level          = LOGX_LEVEL_TRACE;
     cfg.file_level             = LOGX_LEVEL_TRACE;
     cfg.rotate.type            = LOGX_ROTATE_BY_SIZE;
-    cfg.rotate.size_mb       = 1024 * 1024 * 1; /* 1 MB */
+    cfg.rotate.size_mb         = 1024 * 1024 * 1; /* 1 MB */
     cfg.rotate.max_backups     = 3;
     cfg.print_config           = 1;
+    cfg.ts_format              = LOGX_TS_FMT_LOCAL;
 
     logger = logx_create(&cfg);
     if (!logger)

@@ -15,10 +15,11 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* Default LogX Configuration MACROS */
+    /* Default LogX Configuration MACROS */
 
 #ifndef LOGX_DEFAULT_CFG_NAME
 #define LOGX_DEFAULT_CFG_NAME "LogX_Default"

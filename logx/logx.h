@@ -22,7 +22,8 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifndef LOGX_MAX_TIMERS
@@ -33,162 +34,189 @@ extern "C" {
 #define LOGX_TIMER_MAX_LEN 64
 #endif
 
-/* Log levels */
-typedef enum {
-    LOGX_LEVEL_TRACE = 0,
-    LOGX_LEVEL_DEBUG,
-    LOGX_LEVEL_BANNER,
-    LOGX_LEVEL_INFO,
-    LOGX_LEVEL_WARN,
-    LOGX_LEVEL_ERROR,
-    LOGX_LEVEL_FATAL,
-    LOGX_LEVEL_OFF
-} logx_level_t;
+    /* Log levels */
+    typedef enum
+    {
+        LOGX_LEVEL_TRACE = 0,
+        LOGX_LEVEL_DEBUG,
+        LOGX_LEVEL_BANNER,
+        LOGX_LEVEL_INFO,
+        LOGX_LEVEL_WARN,
+        LOGX_LEVEL_ERROR,
+        LOGX_LEVEL_FATAL,
+        LOGX_LEVEL_OFF
+    } logx_level_t;
 
-/* Rotation type */
-typedef enum {
-    LOGX_ROTATE_NONE = 0,
-    LOGX_ROTATE_BY_SIZE,
-    LOGX_ROTATE_BY_DATE
-} logx_rotate_type_t;
+    /* Rotation type */
+    typedef enum
+    {
+        LOGX_ROTATE_NONE = 0,
+        LOGX_ROTATE_BY_SIZE,
+        LOGX_ROTATE_BY_DATE
+    } logx_rotate_type_t;
 
-/* Rotation configuration */
-/* When you add new members here, make sure to update the list in logx_config_key.h */
-typedef struct {
-    logx_rotate_type_t type;        /* type of rotation */
-    size_t             size_mb;     /* used when tyep == LOGX_ROTATE_BY_SIZE */
-    int                max_backups; /* number of backup files to keep (0 = no backups) */
-    int interval_days; /* days between rotations when LOGX_ROTATE_BY_DATE (1 = daily) */
-} logx_rotate_cfg_t;
+    /* Rotation configuration */
+    /* When you add new members here, make sure to update the list in logx_config_key.h */
+    typedef struct
+    {
+        logx_rotate_type_t type; /* type of rotation */
+        size_t size_mb;          /* used when tyep == LOGX_ROTATE_BY_SIZE */
+        int max_backups;         /* number of backup files to keep (0 = no backups) */
+        int interval_days;       /* days between rotations when LOGX_ROTATE_BY_DATE (1 = daily) */
+    } logx_rotate_cfg_t;
 
-/* Logger configuration passed to create function */
-/* When you add new members here, make sure to update the list in logx_config_key.h */
-typedef struct {
-    const char       *name;                   /* logical name of logger (used in prefix) */
-    const char       *file_path;              /* if NULL then file logging disabled */
-    logx_level_t      console_level;          /* level threshold for console */
-    logx_level_t      file_level;             /* level threshold for file */
-    int               enable_console_logging; /* 0/1 */
-    int               enable_file_logging;    /* 0/1 */
-    int               enable_colored_logs;    /* 0/1 */
-    int               use_tty_detection; /* if 1, detect isatty and disable colors for non-ttys */
-    logx_rotate_cfg_t rotate;            /* rotation options */
-    const char       *banner_pattern;    /* Banner pattern */
-    int               print_config;      /* 0/1 */
-} logx_cfg_t;
+    typedef enum
+    {
+        LOGX_TS_FMT_LOCAL,    /* 2026-05-16 14:32:01.123  (local time, your current format) */
+        LOGX_TS_FMT_UTC,      /* 2026-05-16 08:32:01.123Z (UTC)                             */
+        LOGX_TS_FMT_EPOCH_S,  /* 1747384321                (Unix seconds)                   */
+        LOGX_TS_FMT_EPOCH_MS, /* 1747384321123             (Unix milliseconds)              */
+        LOGX_TS_FMT_EPOCH_US, /* 1747384321123456          (Unix microseconds)              */
+        LOGX_TS_FMT_ISO8601,  /* 2026-05-16T08:32:01.123Z  (ISO 8601 / RFC 3339)           */
+        LOGX_TS_FMT_RFC2822,  /* Sat, 16 May 2026 08:32:01 +0000                           */
+    } ts_fmt_t;
 
-/* Timer object */
-typedef struct {
-    void           *logger;                   // pointer that will store the parent logger instance
-    char            name[LOGX_TIMER_MAX_LEN]; // Timer name
-    struct timespec start;                    // Start time
-    uint64_t        accumulated_ns;           // nanoseconds accumulated due to pauses
-    bool            running;                  // 1 if currently running
-} logx_timer_t;
+    /* Logger configuration passed to create function */
+    /* When you add new members here, make sure to update the list in logx_config_key.h */
+    typedef struct
+    {
+        const char *name;           /* logical name of logger (used in prefix) */
+        const char *file_path;      /* if NULL then file logging disabled */
+        logx_level_t console_level; /* level threshold for console */
+        logx_level_t file_level;    /* level threshold for file */
+        int enable_console_logging; /* 0/1 */
+        int enable_file_logging;    /* 0/1 */
+        int enable_colored_logs;    /* 0/1 */
+        int use_tty_detection;      /* if 1, detect isatty and disable colors for non-ttys */
+        logx_rotate_cfg_t rotate;   /* rotation options */
+        const char *banner_pattern; /* Banner pattern */
+        int print_config;           /* 0/1 */
+        ts_fmt_t ts_format;         /* Timestamp format */
+    } logx_cfg_t;
 
-/* LogX core structure */
-typedef struct {
-    logx_cfg_t      cfg;
-    FILE           *fp;                      /* opened log file */
-    int             fd;                      /* file descriptor for locking/stat */
-    pthread_mutex_t lock;                    /* thread safety */
-    char            current_date[16];        /* YYYY-MM-DD for date based rotation */
-    logx_timer_t    timers[LOGX_MAX_TIMERS]; /* stopwatch timers */
-    int             timer_count;
-} logx_t;
+    /* Timer object */
+    typedef struct
+    {
+        void *logger;                  // pointer that will store the parent logger instance
+        char name[LOGX_TIMER_MAX_LEN]; // Timer name
+        struct timespec start;         // Start time
+        uint64_t accumulated_ns;       // nanoseconds accumulated due to pauses
+        bool running;                  // 1 if currently running
+    } logx_timer_t;
 
-/* Utility functions - Users can call */
-/* Create and initialize a logger. Returns NULL on failure. */
-logx_t *logx_create(const logx_cfg_t *cfg);
+    /* LogX core structure */
+    typedef struct
+    {
+        logx_cfg_t cfg;
+        FILE *fp;                             /* opened log file */
+        int fd;                               /* file descriptor for locking/stat */
+        pthread_mutex_t lock;                 /* thread safety */
+        char current_date[16];                /* YYYY-MM-DD for date based rotation */
+        logx_timer_t timers[LOGX_MAX_TIMERS]; /* stopwatch timers */
+        int timer_count;
+    } logx_t;
 
-/* Close and free resources. Safe to call multiple times. */
-void logx_destroy(logx_t *logger);
+    /* Utility functions - Users can call */
+    /* Create and initialize a logger. Returns NULL on failure. */
+    logx_t *logx_create(const logx_cfg_t *cfg);
 
-/* Enable/Disable console logging */
-void logx_enable_console_logging(logx_t *logger);
-void logx_disable_console_logging(logx_t *logger);
+    /* Close and free resources. Safe to call multiple times. */
+    void logx_destroy(logx_t *logger);
 
-/* Enable/Disable file logging */
-void logx_enable_file_logging(logx_t *logger);
-void logx_disable_file_logging(logx_t *logger);
+    /* Enable/Disable console logging */
+    void logx_enable_console_logging(logx_t *logger);
+    void logx_disable_console_logging(logx_t *logger);
 
-/* Set log levels */
-void logx_set_console_logging_level(logx_t *logger, logx_level_t level);
-void logx_set_file_logging_level(logx_t *logger, logx_level_t level);
+    /* Enable/Disable file logging */
+    void logx_enable_file_logging(logx_t *logger);
+    void logx_disable_file_logging(logx_t *logger);
 
-/* Enable/Disable colored logging */
-void logx_enable_colored_logging(logx_t *logger);
-void logx_disable_colored_logging(logx_t *logger);
+    /* Set log levels */
+    void logx_set_console_logging_level(logx_t *logger, logx_level_t level);
+    void logx_set_file_logging_level(logx_t *logger, logx_level_t level);
 
-/* Enable/Disable TTY detection */
-void logx_enable_tty_detection(logx_t *logger);
-void logx_disable_tty_detection(logx_t *logger);
+    /* Enable/Disable colored logging */
+    void logx_enable_colored_logging(logx_t *logger);
+    void logx_disable_colored_logging(logx_t *logger);
 
-/* Enable/Disable print config */
-void logx_enable_print_config(logx_t *logger);
-void logx_disable_print_config(logx_t *logger);
+    /* Enable/Disable TTY detection */
+    void logx_enable_tty_detection(logx_t *logger);
+    void logx_disable_tty_detection(logx_t *logger);
 
-/* ===== Log rotation User APIs ===== */
+    /* Enable/Disable print config */
+    void logx_enable_print_config(logx_t *logger);
+    void logx_disable_print_config(logx_t *logger);
 
-/* Set log rotation type */
-void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type);
+    /* ===== Log rotation User APIs ===== */
 
-/* Force an immediate rotation (useful for admin triggers) */
-int logx_rotate_now(logx_t *logger);
+    /* Set log rotation type */
+    void logx_set_log_rotate_type(logx_t *logger, logx_rotate_type_t type);
 
-/* Set log file max size */
-void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb);
+    /* Force an immediate rotation (useful for admin triggers) */
+    int logx_rotate_now(logx_t *logger);
 
-/* Set log file max number of backups */
-void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups);
+    /* Set log file max size */
+    void logx_set_log_file_size_mb(logx_t *logger, size_t size_mb);
 
-/* Set log rotation interval in days */
-void logx_set_rotation_interval_days(logx_t *logger, int interval_days);
+    /* Set log file max number of backups */
+    void logx_set_num_of_logfile_backups(logx_t *logger, int max_backups);
 
-/* ===== Timer User APIs ===== */
+    /* Set log rotation interval in days */
+    void logx_set_rotation_interval_days(logx_t *logger, int interval_days);
 
-/* Creates or starts a logx timer */
-logx_timer_t *logx_timer_start(logx_t *logger, const char *name);
+    /* ===== Timer User APIs ===== */
 
-/* Stops a logx timer */
-void logx_timer_stop(logx_t *logger, const char *name);
+    /* Creates or starts a logx timer */
+    logx_timer_t *logx_timer_start(logx_t *logger, const char *name);
 
-/* Pauses a logx timer */
-void logx_timer_pause(logx_t *logger, const char *name);
+    /* Stops a logx timer */
+    void logx_timer_stop(logx_t *logger, const char *name);
 
-/* Resumes a logx timer */
-void logx_timer_resume(logx_t *logger, const char *name);
+    /* Pauses a logx timer */
+    void logx_timer_pause(logx_t *logger, const char *name);
 
-/* ===== Helper functions ===== */
+    /* Resumes a logx timer */
+    void logx_timer_resume(logx_t *logger, const char *name);
 
-/* Helper functions - LogX will internally call */
-/* Log a message. file/func/line are helpers provided by macros below. */
-void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
-              const char *fmt, ...);
+    /* ===== Timestamp User APIs =====*/
+    void logx_set_ts_format_to_epoch_s(logx_t *logger);
+    void logx_set_ts_format_to_epoch_ms(logx_t *logger);
+    void logx_set_ts_format_to_epoch_us(logx_t *logger);
+    void logx_set_ts_format_to_local(logx_t *logger);
+    void logx_set_ts_format_to_utc(logx_t *logger);
+    void logx_set_ts_format_to_iso8601(logx_t *logger);
+    void logx_set_ts_format_to_rfc2822(logx_t *logger);
 
-/* Helper: convert level to string */
-const char *logx_level_to_string(logx_level_t level);
+    /* ===== Helper functions ===== */
 
-/* Helper: convert rotate type to string */
-const char *logx_rotate_type_to_string(logx_rotate_type_t type);
+    /* Helper functions - LogX will internally call */
+    /* Log a message. file/func/line are helpers provided by macros below. */
+    void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
+                  const char *fmt, ...);
 
-/* Helper: validates whether level is a valid logx_level_t value */
-int is_valid_logx_level(logx_level_t level);
+    /* Helper: convert level to string */
+    const char *logx_level_to_string(logx_level_t level);
 
-/* Helper: validates whether type is a valid logx_rotate_type_t value */
-int is_valid_logx_rotate_type(logx_rotate_type_t type);
+    /* Helper: convert rotate type to string */
+    const char *logx_rotate_type_to_string(logx_rotate_type_t type);
 
-/* Helper: Locks the fd using flock */
-int file_lock_ex(int fd);
+    /* Helper: validates whether level is a valid logx_level_t value */
+    int is_valid_logx_level(logx_level_t level);
 
-/* Helper: Unlocks the fd */
-int file_lock_un(int fd);
+    /* Helper: validates whether type is a valid logx_rotate_type_t value */
+    int is_valid_logx_rotate_type(logx_rotate_type_t type);
 
-/* Helper: Rotates log files */
-int rotate_files(const char *path, int max_backups);
+    /* Helper: Locks the fd using flock */
+    int file_lock_ex(int fd);
 
-/* Helper: LOGX_TIMER_AUTO clean up function */
-void logx_timer_auto_cleanup(logx_timer_t **t);
+    /* Helper: Unlocks the fd */
+    int file_lock_un(int fd);
+
+    /* Helper: Rotates log files */
+    int rotate_files(const char *path, int max_backups);
+
+    /* Helper: LOGX_TIMER_AUTO clean up function */
+    void logx_timer_auto_cleanup(logx_timer_t **t);
 
 /**
  * @brief Automatically starts-stops a timer when the function returns
@@ -201,8 +229,8 @@ void logx_timer_auto_cleanup(logx_timer_t **t);
     logx_timer_t *__attribute__((cleanup(logx_timer_auto_cleanup))) \
     __logx_auto_timer_##__COUNTER__ = logx_timer_start(logger, name)
 
-/* Helper: Converts a 64-bit integer to a binary string with grouped nibbles (4 bits) */
-const char *logx_bin_str64_grouped_tls(uint64_t value);
+    /* Helper: Converts a 64-bit integer to a binary string with grouped nibbles (4 bits) */
+    const char *logx_bin_str64_grouped_tls(uint64_t value);
 
 /* Helper: Binary string conversion macros */
 #define LOGX_BIN_STR(v) logx_bin_str64_grouped_tls((uint64_t)(v))
