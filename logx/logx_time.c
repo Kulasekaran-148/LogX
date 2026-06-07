@@ -12,12 +12,196 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "logx.h"
-
+#include "logx_common.h"
+#include "logx_errorcodes.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 #include <time.h>
+
+logx_errorcodes_t logx_set_ts_format_to_epoch_s(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_EPOCH_S;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_epoch_ms(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_EPOCH_MS;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_epoch_us(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_EPOCH_US;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_local(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_LOCAL;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_utc(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_UTC;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_iso8601(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_ISO8601;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+logx_errorcodes_t logx_set_ts_format_to_rfc2822(logx_t *logger)
+{
+    if (logger)
+    {
+        logger->cfg.ts_format = LOGX_TS_FMT_RFC2822;
+        return LOGX_ERR_SUCCESS;
+    }
+    else
+        return LOGX_ERR_INVALID_ARG;
+}
+
+/**
+ * @brief Get current timestamp
+ *
+ * @param[out] pszBuffer - Buffer in which timestamp needs to be filled
+ * @param[in] dwBufferLen - Timestamp buffer len
+ * @param[out] tv - Timeval object
+ * @param[in] eTimestampFormat - Timestamp format
+ * @return logx_errorcodes_t LOGX_ERR_SUCCESS on success
+ */
+logx_errorcodes_t get_timestamp(char *pszBuffer, size_t dwBufferLen, struct timeval *tv,
+                                logx_ts_fmt_t eTimestampFormat)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+    struct timeval ttmp;
+
+    if (!pszBuffer || dwBufferLen == 0)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    /* Capture time if not supplied */
+    if (!tv)
+    {
+        gettimeofday(&ttmp, NULL);
+        tv = &ttmp;
+    }
+
+    int ms = (int)(tv->tv_usec / 1000);
+    int us = (int)(tv->tv_usec);
+
+    switch (eTimestampFormat)
+    {
+
+        case LOGX_TS_FMT_EPOCH_S:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec);
+            break;
+        }
+
+        case LOGX_TS_FMT_EPOCH_MS:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec * 1000 + ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_EPOCH_US:
+        {
+            snprintf(pszBuffer, dwBufferLen, "%lld", (long long)tv->tv_sec * 1000000 + us);
+            break;
+        }
+
+        case LOGX_TS_FMT_LOCAL:
+        {
+            struct tm tm;
+            localtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_UTC:
+        {
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02d %02d:%02d:%02d.%03dZ",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_ISO8601:
+        {
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                     ms);
+            break;
+        }
+
+        case LOGX_TS_FMT_RFC2822:
+        {
+            static const char *days[]   = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+            static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            struct tm tm;
+            gmtime_r(&tv->tv_sec, &tm);
+            snprintf(pszBuffer, dwBufferLen, "%s, %02d %s %04d %02d:%02d:%02d +0000",
+                     days[tm.tm_wday], tm.tm_mday, months[tm.tm_mon], tm.tm_year + 1900, tm.tm_hour,
+                     tm.tm_min, tm.tm_sec);
+            break;
+        }
+
+        default:
+        {
+            pszBuffer[0] = '\0';
+            eErr         = LOGX_ERR_FAILURE;
+        }
+    }
+END:
+    return eErr;
+}
 
 /**
  * @brief Compute the difference between two timespec values in nanoseconds.
@@ -166,7 +350,7 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
         fprintf(stderr, "[LogX] Timer[%s] already exists !\n", logger->timers[idx].name);
         logx_timer_t *t = &logger->timers[idx];
 
-        if (t->running)
+        if (t->bRunning)
         {
             // Already running
             pthread_mutex_unlock(&logger->lock);
@@ -175,7 +359,7 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
 
         // Resuming a paused timer
         clock_gettime(CLOCK_MONOTONIC, &t->start);
-        t->running = true;
+        t->bRunning = true;
 
         pthread_mutex_unlock(&logger->lock);
         return t;
@@ -197,7 +381,7 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
 
     clock_gettime(CLOCK_MONOTONIC, &t->start);
     t->accumulated_ns = 0;
-    t->running        = 1;
+    t->bRunning       = 1;
 
     t->logger = logger;
 
@@ -237,7 +421,7 @@ void logx_timer_pause(logx_t *logger, const char *name)
 
     logx_timer_t *t = &logger->timers[idx];
 
-    if (!t->running)
+    if (!t->bRunning)
     {
         pthread_mutex_unlock(&logger->lock);
         return; // Already paused
@@ -247,7 +431,7 @@ void logx_timer_pause(logx_t *logger, const char *name)
     clock_gettime(CLOCK_MONOTONIC, &now);
 
     t->accumulated_ns += diff_ns(&now, &t->start);
-    t->running = 0;
+    t->bRunning = 0;
 
     pthread_mutex_unlock(&logger->lock);
 }
@@ -282,7 +466,7 @@ void logx_timer_resume(logx_t *logger, const char *name)
 
     logx_timer_t *t = &logger->timers[idx];
 
-    if (t->running)
+    if (t->bRunning)
     {
         fprintf(stderr, "[LogX] Timer[%s] is already running\n", logger->timers[idx].name);
         pthread_mutex_unlock(&logger->lock);
@@ -290,7 +474,7 @@ void logx_timer_resume(logx_t *logger, const char *name)
     }
 
     clock_gettime(CLOCK_MONOTONIC, &t->start);
-    t->running = 1;
+    t->bRunning = 1;
 
     pthread_mutex_unlock(&logger->lock);
 }
@@ -333,7 +517,7 @@ void logx_timer_stop(logx_t *logger, const char *name)
     struct timespec now;
 
     // If running, add the final duration
-    if (t->running)
+    if (t->bRunning)
     {
         clock_gettime(CLOCK_MONOTONIC, &now);
         t->accumulated_ns += diff_ns(&now, &t->start);
@@ -352,7 +536,7 @@ void logx_timer_stop(logx_t *logger, const char *name)
     if (logger->cfg.enable_file_logging)
     {
         if (logger->fd >= 0)
-            file_lock_ex(logger->fd);
+            exclusive_flock(logger->fd);
 
         if (logger->fp)
         {

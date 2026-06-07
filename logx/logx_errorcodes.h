@@ -1,36 +1,9 @@
 #ifndef LOGX_ERRORCODES_H
 #define LOGX_ERRORCODES_H
 
-typedef enum
-{
-    /* Generic */
-    LOGX_ERR_FAILURE = -1,
-    LOGX_ERR_SUCCESS = 0,
-    LOGX_ERR_INVALID_VALUE,
-    LOGX_ERR_OUT_OF_RANGE,
-    LOGX_ERR_NO_MEM,
-    LOGX_ERR_NULL_PTR,
-    LOGX_ERR_INVALID_ARG,
+#include "logx_types.h"
 
-    /* Thread */
-    LOGX_ERR_THREAD_CREATION_FAILED,
-    LOGX_ERR_THREAD_NAMING_FAILED,
-    LOGX_ERR_THREAD_JOIN_FAILED,
-    LOGX_ERR_THREAD_CANCEL_FAILED,
-
-    /* File */
-    LOGX_ERR_FILE_NOT_FOUND,
-    LOGX_ERR_FILE_OPEN_FAILED,
-    LOGX_ERR_FD_OPEN_FAILED,
-    LOGX_ERR_FILE_READ_FAILED,
-    LOGX_ERR_FILE_WRITE_FAILED,
-    LOGX_ERR_FILE_RENAME_FAILED,
-    LOGX_ERR_FLOCK_FAILED,
-    LOGX_ERR_FUNLOCK_FAILED,
-
-    /* Directory */
-    ERR_DIRECTORY_CREATION_FAILED,
-
-} logx_errorcodes_t;
+/* Function declarations */
+const char *logx_errcode_to_str(logx_errorcodes_t eErr);
 
 #endif /* LOGX_ERRORCODES_H */

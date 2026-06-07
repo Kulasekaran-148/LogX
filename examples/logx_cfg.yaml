@@ -1,34 +1,17 @@
-# ==========================================================
-# LogX Configuration File (YAML)
-# ==========================================================
-# This file defines logging behavior for your application.
-# Each field corresponds to a configuration key in LogX.
-# ==========================================================
-
-# ---- Basic Information ----
-name: "App Logger"
-file_path: "./logs/app.log"
-
-# ---- Log Output Control ----
-enable_console_logging: true
-enable_file_logging: true
-enable_colored_logs: true
-use_tty_detection: true
-print_config: 1
-
-# ---- Log Levels ----
-# Options: TRACE | DEBUG | INFO | WARN | ERROR
-console_level: "DEBUG"
-file_level: "DEBUG"
-
-# ---- Rotation Policy ----
-# rotate_type options: BY_SIZE | BY_DATE
+name: "Appname"
+logfile_path: "./logx.log"
+enable_console_logging: 1
+enable_file_logging: 1
+enable_colored_logs: 1
+use_tty_detection: 1
+console_level: "TRACE"
+file_level: "TRACE"
 rotate_type: "BY_SIZE"
-rotate_max_Mbytes: 10
-rotate_max_backups: 3
-rotate_interval_days: 1
-
-# ---- Appearance ----
+max_logfile_size_mb: 10
+max_logfile_backups: 3
+rotate_after_days: 1
 banner_pattern: "=-"
+print_config: 1
+timestamp_format: "LOCAL"
 
 

@@ -122,9 +122,9 @@ int main() {
 #define LOGX_DEFAULT_CFG_ENABLE_COLORED_LOGGING     true
 #define LOGX_DEFAULT_CFG_ENABLE_TTY_DETECTION       true
 #define LOGX_DEFAULT_CFG_LOG_ROTATE_TYPE            LOGX_ROTATE_BY_SIZE
-#define LOGX_DEFAULT_CFG_LOG_ROTATE_SIZE_MB         10
-#define LOGX_DEFAULT_CFG_LOG_ROTATE_MAX_NUM_BACKUPS 3
-#define LOGX_DEFAULT_CFG_LOG_ROTATE_INTERVAL_DAYS  1
+#define LOGX_DEFAULT_CFG_MAX_LOGFILE_SIZE_MB         10
+#define LOGX_DEFAULT_CFG_MAX_LOGFILE_BACKUPS 3
+#define LOGX_DEFAULT_CFG_LOG_ROTATE_AFTER_DAYS  1
 #define LOGX_DEFAULT_CFG_BANNER_PATTERN             "="
 #define LOGX_DEFAULT_CFG_PRINT_CONFIG               true
 ```
@@ -336,7 +336,7 @@ typedef struct
     logx_rotate_type_t type;            /* type of rotation */
     size_t             size_mb;       /* used when tyep == LOGX_ROTATE_BY_SIZE */
     int                max_backups;     /* number of backup files to keep (0 = no backups) */
-    int                interval_days;  /* days between rotations when type = LOGX_ROTATE_BY_DATE (1 = daily) */
+    int                after_days;  /* days between rotations when type = LOGX_ROTATE_BY_DATE (1 = daily) */
 } logx_rotate_cfg_t;
 ```
 
@@ -374,11 +374,11 @@ cfg.rotate.max_backups = 5; // Number of backups to maintain
 
 - During `logx_create`, LogX will save the current date in its configuration. Using this information, the LOGX_ROTATE_BY_DATE works.
 
-- You can use `cfg.rotate.interval_days` to specify how many number of days once the log file needs to be rotated.
+- You can use `cfg.rotate.after_days` to specify how many number of days once the log file needs to be rotated.
 
 ```c
 cfg.rotate.type = LOGX_ROTATE_BY_DATE;
-cfg.rotate.interval_days = 1 // Rotate the log files daily
+cfg.rotate.after_days = 1 // Rotate the log files daily
 cfg.rotate.max_backups = 5    // Number of backups to maintain
 ```
 
@@ -625,7 +625,7 @@ typedef enum {
 // rotate log files by size. This works with `cfg.rotate.size_mbytes` parameter in which user will specify the max size in mb that the log files can reach before getting rotated
 logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_SIZE);
 
-// rotate log files by date. This works with `cfg.rotate.interval_days` parameter in which user will spcify the number of days once the log files should get rotated
+// rotate log files by date. This works with `cfg.rotate.after_days` parameter in which user will spcify the number of days once the log files should get rotated
 logx_set_log_rotate_type(logger, LOGX_ROTATE_BY_DATE);
 ```
 
@@ -647,7 +647,7 @@ logx_set_log_file_size_mb(logger, 15);
 - Let's users set the number of days once the log files should get rotated. This param will be considered only when `cfg.rotate.type` is `LOX_ROTATE_BY_DATE`
 
 ```c
-logx_set_rotation_interval_days(logger, 5);
+logx_set_rotation_after_days(logger, 5);
 ```
 
 ---
