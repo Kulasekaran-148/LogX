@@ -15,7 +15,7 @@
 
 int main()
 {
-    logx_t *logger;
+    logx_t *logger = NULL;
     logx_cfg_t cfg = {0};
 
     /* Logger Configuration */
