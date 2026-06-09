@@ -33,18 +33,14 @@ int main()
     cfg.print_config           = 1;
     cfg.ts_format              = LOGX_TS_FMT_LOCAL;
 
-    logger = logx_create(&cfg);
-    if (!logger)
+    if (logx_create(&cfg, &logger) != LOGX_ERR_SUCCESS)
     {
         fprintf(stderr, "Failed to create logger instance\n");
         return -1;
     }
     LOGX_BANNER(logger, "Welcome to LogX Logging");
 
-    if (logger)
-    {
-        logx_destroy(logger);
-    }
+    logx_destroy(logger);
 
     return 0;
 }

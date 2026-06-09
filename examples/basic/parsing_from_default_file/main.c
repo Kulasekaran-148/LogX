@@ -28,18 +28,15 @@
 
 int main()
 {
-    logx_t *logger = logx_create(NULL);
-    if (!logger)
+    logx_t *logger = NULL;
+    if (logx_create(NULL, &logger) != LOGX_ERR_SUCCESS)
     {
         fprintf(stderr, "Failed to create logger instance\n");
         return -1;
     }
     LOGX_BANNER(logger, "Welcome to LogX Logging");
 
-    if (logger)
-    {
-        logx_destroy(logger);
-    }
+    logx_destroy(logger);
 
     return 0;
 }

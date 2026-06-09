@@ -20,6 +20,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <yaml.h>
 
@@ -235,6 +236,68 @@ logx_errorcodes_t logx_disable_file_logging(logx_t *logger)
 
     pthread_mutex_lock(&logger->lock);
     logger->cfg.enable_file_logging = 0;
+    pthread_mutex_unlock(&logger->lock);
+
+END:
+    return eErr;
+}
+
+logx_errorcodes_t logx_enable_syslog(logx_t *logger)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    if (!logger)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    if (!logger->syslog_opened)
+    {
+        const char *ident = (logger->cfg.syslog_ident && *logger->cfg.syslog_ident)
+                                ? logger->cfg.syslog_ident
+                                : logger->cfg.name;
+        openlog(ident, LOG_PID, (int)logger->cfg.syslog_facility);
+        logger->syslog_opened = 1;
+    }
+    logger->cfg.enable_syslog = 1;
+    pthread_mutex_unlock(&logger->lock);
+
+END:
+    return eErr;
+}
+
+logx_errorcodes_t logx_disable_syslog(logx_t *logger)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    if (!logger)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    logger->cfg.enable_syslog = 0;
+    pthread_mutex_unlock(&logger->lock);
+
+END:
+    return eErr;
+}
+
+logx_errorcodes_t logx_set_syslog_facility(logx_t *logger, logx_syslog_facility_t facility)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    if (!logger)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    logger->cfg.syslog_facility = facility;
     pthread_mutex_unlock(&logger->lock);
 
 END:
@@ -629,10 +692,41 @@ static logx_errorcodes_t logx_load_cfg_from_file(logx_cfg_t *cfg)
     return -1;
 }
 
-logx_t *logx_create(const logx_cfg_t *cfg)
+static int logx_level_to_syslog_priority(logx_level_t level)
 {
-    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
-    logx_cfg_t internal_cfg;
+    switch (level)
+    {
+        case LOGX_LEVEL_TRACE:
+            return LOG_DEBUG;
+        case LOGX_LEVEL_DEBUG:
+            return LOG_DEBUG;
+        case LOGX_LEVEL_BANNER:
+            return LOG_NOTICE;
+        case LOGX_LEVEL_INFO:
+            return LOG_INFO;
+        case LOGX_LEVEL_WARN:
+            return LOG_WARNING;
+        case LOGX_LEVEL_ERROR:
+            return LOG_ERR;
+        case LOGX_LEVEL_FATAL:
+            return LOG_CRIT;
+        default:
+            return LOG_DEBUG;
+    }
+}
+
+logx_errorcodes_t logx_create(const logx_cfg_t *cfg, logx_t **out)
+{
+    logx_errorcodes_t eErr  = LOGX_ERR_SUCCESS;
+    logx_cfg_t internal_cfg = {0};
+    logx_t *l               = NULL;
+    int strings_owned       = 0;
+
+    if (!out)
+    {
+        eErr = LOGX_ERR_NULL_PTR;
+        goto END;
+    }
 
     if (cfg)
     {
@@ -651,16 +745,17 @@ logx_t *logx_create(const logx_cfg_t *cfg)
         }
         /* parser path: strings already heap-owned via logx_apply_field */
     }
+    strings_owned = 1;
 
-    // Allocate logger
-    logx_t *l = calloc(1, sizeof(*l));
+    l = calloc(1, sizeof(*l));
     if (!l)
     {
-        logx_cfg_free_strings(&internal_cfg);
-        return NULL;
+        eErr = LOGX_ERR_NO_MEM;
+        goto END;
     }
 
     memcpy(&l->cfg, &internal_cfg, sizeof(l->cfg));
+    strings_owned = 0; /* ownership transferred to l->cfg */
     pthread_mutex_init(&l->lock, NULL);
 
     l->fp              = NULL;
@@ -669,25 +764,21 @@ logx_t *logx_create(const logx_cfg_t *cfg)
 
     if (l->cfg.enable_file_logging && l->cfg.file_path)
     {
-
-        /* Ensure directory exists */
-        if ((eErr = ensure_parent_dir_exists(l->cfg.file_path)) != LOGX_ERR_SUCCESS)
-        {
+        logx_errorcodes_t dir_err = ensure_parent_dir_exists(l->cfg.file_path);
+        if (dir_err != LOGX_ERR_SUCCESS)
             fprintf(stderr, "[LogX] Failed to create path for logfile: %s",
-                    logx_get_err_string(eErr));
-        }
+                    logx_get_err_string(dir_err));
 
         l->fp = fopen(l->cfg.file_path, "a");
         if (!l->fp)
         {
             fprintf(stderr, "[LogX] Opening %s failed. Disabling file logging...\n",
                     l->cfg.file_path);
-            l->cfg.enable_file_logging = 0; // disable if cannot open
+            l->cfg.enable_file_logging = 0;
         }
         else
         {
-            l->fd = fileno(l->fp);
-            // initialize date tracking
+            l->fd    = fileno(l->fp);
             time_t t = time(NULL);
             struct tm tm;
             localtime_r(&t, &tm);
@@ -696,29 +787,49 @@ logx_t *logx_create(const logx_cfg_t *cfg)
         }
     }
 
-    /* TTY detection */
     if (l->cfg.use_tty_detection)
     {
         if (!isatty(fileno(stdout)))
-        {
             l->cfg.enable_colored_logs = 0;
+    }
+
+    if (l->cfg.print_config)
+        logx_cfg_print((const logx_cfg_t *)&l->cfg);
+
+    if (l->cfg.enable_syslog)
+    {
+        const char *ident =
+            (l->cfg.syslog_ident && *l->cfg.syslog_ident) ? l->cfg.syslog_ident : l->cfg.name;
+        openlog(ident, LOG_PID, (int)l->cfg.syslog_facility);
+        l->syslog_opened = 1;
+    }
+
+END:
+    if (eErr != LOGX_ERR_SUCCESS)
+    {
+        if (strings_owned)
+            logx_cfg_free_strings(&internal_cfg);
+        if (l)
+        {
+            pthread_mutex_destroy(&l->lock);
+            logx_cfg_free_strings(&l->cfg);
+            free(l);
+            l = NULL;
         }
     }
-
-    /* Print configuration if enabled */
-    if (l->cfg.print_config)
-    {
-        logx_cfg_print(l);
-    }
-
-    return l;
+    if (out)
+        *out = l;
+    return eErr;
 }
 
-void logx_destroy(logx_t *logger)
+logx_errorcodes_t logx_destroy(logx_t *logger)
 {
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
     if (!logger)
     {
-        return;
+        eErr = LOGX_ERR_NULL_PTR;
+        goto END;
     }
 
     pthread_mutex_lock(&logger->lock);
@@ -734,12 +845,18 @@ void logx_destroy(logx_t *logger)
     pthread_mutex_unlock(&logger->lock);
     pthread_mutex_destroy(&logger->lock);
 
+    if (logger->syslog_opened)
+        closelog();
+
     logx_cfg_free_strings(&logger->cfg);
     free(logger);
+
+END:
+    return eErr;
 }
 
-void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
-              const char *fmt, ...)
+static void logx_log_impl(logx_t *logger, logx_level_t level, uint32_t flags, const char *file,
+                          const char *func, int line, const char *fmt, va_list ap)
 {
     if (!logger || level == LOGX_LEVEL_OFF)
         return;
@@ -753,8 +870,9 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     int write_console = logger->cfg.enable_console_logging && level >= logger->cfg.console_level;
     int write_file =
         logger->cfg.enable_file_logging && level >= logger->cfg.file_level && logger->fp;
+    int write_syslog = (flags & LOGX_FLAG_SYSLOG) && logger->cfg.enable_syslog;
 
-    if (!write_console && !write_file)
+    if (!write_console && !write_file && !write_syslog)
     {
         pthread_mutex_unlock(&logger->lock);
         return;
@@ -771,10 +889,7 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
     char payload[4096];
     char linebuf[4096];
     char border[4096 + 10]; // payload max + margins
-    va_list ap;
-    va_start(ap, fmt);
     vsnprintf(payload, sizeof(payload), fmt, ap);
-    va_end(ap);
 
     int use_color = logger->cfg.enable_colored_logs;
     const char *color;
@@ -891,5 +1006,32 @@ void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *
             unlock_flock(logger->fd);
     }
 
+    /* Syslog write — send logger name + source location + message; syslog adds its own timestamp */
+    if (write_syslog)
+    {
+        char syslog_msg[8192];
+        snprintf(syslog_msg, sizeof(syslog_msg), "[%s] (%s:%s:%d): %s", logger->cfg.name,
+                 file ? file : "?", func ? func : "?", line, payload);
+        syslog(logx_level_to_syslog_priority(level), "%s", syslog_msg);
+    }
+
     pthread_mutex_unlock(&logger->lock);
+}
+
+void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
+              const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    logx_log_impl(logger, level, 0, file, func, line, fmt, ap);
+    va_end(ap);
+}
+
+void logx_log_f(logx_t *logger, logx_level_t level, uint32_t flags, const char *file,
+                const char *func, int line, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    logx_log_impl(logger, level, flags, file, func, line, fmt, ap);
+    va_end(ap);
 }

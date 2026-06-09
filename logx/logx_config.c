@@ -13,7 +13,9 @@
 #include "logx_common.h"
 #include <cJSON/cJSON.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 //clang-format off
 const logx_field_desc_t LOGX_FIELD_TABLE[] = {
@@ -92,10 +94,27 @@ const logx_field_desc_t LOGX_FIELD_TABLE[] = {
      LOGX_FIELD_TS_FMT,
      offsetof(logx_cfg_t, ts_format),
      {.int_default = LOGX_DEFAULT_CFG_TIMESTAMP_FORMAT}},
+    {LOGX_KEY_ENABLE_SYSLOG,
+     "logx",
+     LOGX_FIELD_BOOL,
+     offsetof(logx_cfg_t, enable_syslog),
+     {.int_default = LOGX_DEFAULT_CFG_ENABLE_SYSLOG}},
+    {LOGX_KEY_SYSLOG_FACILITY,
+     "logx",
+     LOGX_FIELD_SYSLOG_FACILITY,
+     offsetof(logx_cfg_t, syslog_facility),
+     {.int_default = LOGX_DEFAULT_CFG_SYSLOG_FACILITY}},
+    {LOGX_KEY_SYSLOG_IDENT,
+     "logx",
+     LOGX_FIELD_STRING,
+     offsetof(logx_cfg_t, syslog_ident),
+     {.str_default = LOGX_DEFAULT_CFG_SYSLOG_IDENT}},
 };
 //clang-format on
 
 const size_t LOGX_FIELD_TABLE_COUNT = ARRAY_SIZE(LOGX_FIELD_TABLE);
+
+static const char *logx_syslog_facility_to_string(logx_syslog_facility_t val);
 
 void log_missing_json_keys(cJSON *root)
 {
@@ -152,6 +171,13 @@ void logx_cfg_print(const logx_cfg_t *cfg)
             case LOGX_FIELD_TS_FMT:
             {
                 printf("%s\n", logx_ts_fmt_to_string(*(const logx_ts_fmt_t *)field_ptr));
+                break;
+            }
+            case LOGX_FIELD_SYSLOG_FACILITY:
+            {
+                printf("%s\n",
+                       logx_syslog_facility_to_string(*(const logx_syslog_facility_t *)field_ptr));
+                break;
             }
         }
     }
@@ -216,6 +242,41 @@ static logx_ts_fmt_t logx_ts_fmt_from_str(const char *str, logx_ts_fmt_t fallbac
     return fallback;
 }
 
+typedef struct
+{
+    logx_syslog_facility_t val;
+    const char *name;
+} logx_syslog_facility_entry_t;
+
+static const logx_syslog_facility_entry_t SYSLOG_FACILITY_MAP[] = {
+    {LOGX_SYSLOG_FACILITY_USER, "USER"},     {LOGX_SYSLOG_FACILITY_DAEMON, "DAEMON"},
+    {LOGX_SYSLOG_FACILITY_LOCAL0, "LOCAL0"}, {LOGX_SYSLOG_FACILITY_LOCAL1, "LOCAL1"},
+    {LOGX_SYSLOG_FACILITY_LOCAL2, "LOCAL2"}, {LOGX_SYSLOG_FACILITY_LOCAL3, "LOCAL3"},
+    {LOGX_SYSLOG_FACILITY_LOCAL4, "LOCAL4"}, {LOGX_SYSLOG_FACILITY_LOCAL5, "LOCAL5"},
+    {LOGX_SYSLOG_FACILITY_LOCAL6, "LOCAL6"}, {LOGX_SYSLOG_FACILITY_LOCAL7, "LOCAL7"},
+};
+#define SYSLOG_FACILITY_MAP_COUNT ARRAY_SIZE(SYSLOG_FACILITY_MAP)
+
+static const char *logx_syslog_facility_to_string(logx_syslog_facility_t val)
+{
+    for (size_t i = 0; i < SYSLOG_FACILITY_MAP_COUNT; i++)
+        if (SYSLOG_FACILITY_MAP[i].val == val)
+            return SYSLOG_FACILITY_MAP[i].name;
+    return "ukwn";
+}
+
+static logx_syslog_facility_t logx_syslog_facility_from_str(const char *str,
+                                                            logx_syslog_facility_t fallback)
+{
+    if (!str)
+        return fallback;
+    for (size_t i = 0; i < SYSLOG_FACILITY_MAP_COUNT; i++)
+        if (strcasecmp(str, SYSLOG_FACILITY_MAP[i].name) == 0)
+            return SYSLOG_FACILITY_MAP[i].val;
+    fprintf(stderr, "[LogX] Unknown syslog_facility '%s', using default.\n", str);
+    return fallback;
+}
+
 void logx_apply_field(logx_cfg_t *cfg, const logx_field_desc_t *desc, const char *str_val,
                       int int_val, bool found)
 {
@@ -225,7 +286,7 @@ void logx_apply_field(logx_cfg_t *cfg, const logx_field_desc_t *desc, const char
     {
         /* Apply default */
         if (desc->type == LOGX_FIELD_STRING)
-            *(char **)field_ptr = strdup(desc->def.str_default);
+            *(char **)field_ptr = desc->def.str_default ? strdup(desc->def.str_default) : NULL;
         else
             *(int *)field_ptr = desc->def.int_default;
         return;
@@ -251,6 +312,10 @@ void logx_apply_field(logx_cfg_t *cfg, const logx_field_desc_t *desc, const char
         case LOGX_FIELD_TS_FMT:
             *(logx_ts_fmt_t *)field_ptr =
                 logx_ts_fmt_from_str(str_val, (logx_ts_fmt_t)desc->def.int_default);
+            break;
+        case LOGX_FIELD_SYSLOG_FACILITY:
+            *(logx_syslog_facility_t *)field_ptr = logx_syslog_facility_from_str(
+                str_val, (logx_syslog_facility_t)desc->def.int_default);
             break;
     }
 }

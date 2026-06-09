@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    logx_t *logger = logx_create(NULL);
-    if (!logger)
+    logx_t *logger = NULL;
+    if (logx_create(NULL, &logger) != LOGX_ERR_SUCCESS)
     {
         fprintf(stderr, "Failed to create logger instance\n");
         return -1;

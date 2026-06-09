@@ -34,9 +34,7 @@ int main(void)
     cfg.print_config           = 1;
     cfg.ts_format              = LOGX_TS_FMT_LOCAL;
 
-    logger = logx_create(&cfg);
-
-    if (!logger)
+    if (logx_create(&cfg, &logger) != LOGX_ERR_SUCCESS)
     {
         fprintf(stderr, "[LogX] Failed to create logx logger instance\n");
         return -1;
@@ -53,10 +51,7 @@ int main(void)
     // stop the timer
     logx_timer_stop(logger, "timer name");
 
-    if (logger)
-    {
-        logx_destroy(logger);
-    }
+    logx_destroy(logger);
 
     return 0;
 }

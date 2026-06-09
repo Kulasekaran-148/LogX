@@ -3,8 +3,8 @@
 
 int main()
 {
-    logx_t *logger = logx_create(NULL);
-    if (!logger)
+    logx_t *logger = NULL;
+    if (logx_create(NULL, &logger) != LOGX_ERR_SUCCESS)
     {
         fprintf(stderr, "Failed to create logger\n");
         return -1;
@@ -31,10 +31,7 @@ int main()
     logx_set_ts_format_to_rfc2822(logger);
     LOGX_DEBUG(logger, "This message contains timestamp in LOGX_TS_FMT_RFC8222");
 
-    if (logger)
-    {
-        logx_destroy(logger);
-    }
+    logx_destroy(logger);
 
     return 0;
 }

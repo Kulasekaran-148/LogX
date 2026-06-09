@@ -23,8 +23,26 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <syslog.h>
 
 #define LOGX_LOG_FILE_PATH_MAX_LEN_BYTES 1024
+
+/* Per-call flags for logx_log_f() — combine with bitwise OR for multiple flags */
+#define LOGX_FLAG_SYSLOG (1U << 0)
+
+typedef enum
+{
+    LOGX_SYSLOG_FACILITY_USER   = LOG_USER,
+    LOGX_SYSLOG_FACILITY_DAEMON = LOG_DAEMON,
+    LOGX_SYSLOG_FACILITY_LOCAL0 = LOG_LOCAL0,
+    LOGX_SYSLOG_FACILITY_LOCAL1 = LOG_LOCAL1,
+    LOGX_SYSLOG_FACILITY_LOCAL2 = LOG_LOCAL2,
+    LOGX_SYSLOG_FACILITY_LOCAL3 = LOG_LOCAL3,
+    LOGX_SYSLOG_FACILITY_LOCAL4 = LOG_LOCAL4,
+    LOGX_SYSLOG_FACILITY_LOCAL5 = LOG_LOCAL5,
+    LOGX_SYSLOG_FACILITY_LOCAL6 = LOG_LOCAL6,
+    LOGX_SYSLOG_FACILITY_LOCAL7 = LOG_LOCAL7,
+} logx_syslog_facility_t;
 
 /* Logger configuration passed to create function */
 struct logx_cfg_t
@@ -41,6 +59,9 @@ struct logx_cfg_t
     const char *banner_pattern; /* Banner pattern */
     int print_config;           /* 0/1 */
     logx_ts_fmt_t ts_format;    /* Timestamp format */
+    int enable_syslog;          /* 0/1: enable syslog sink */
+    logx_syslog_facility_t syslog_facility; /* syslog facility (default LOG_USER) */
+    const char *syslog_ident;               /* syslog identity string (NULL = logger name) */
 };
 
 /* LogX core structure */
@@ -53,6 +74,7 @@ struct logx_t
     char current_date[16];                /* YYYY-MM-DD for date based rotation */
     logx_timer_t timers[LOGX_MAX_TIMERS]; /* stopwatch timers */
     int timer_count;
+    int syslog_opened; /* 1 if openlog() was called for this logger */
 };
 
 #ifdef __cplusplus
@@ -60,10 +82,10 @@ extern "C"
 {
 #endif
 
-    logx_t *logx_create(const logx_cfg_t *cfg);
+    logx_errorcodes_t logx_create(const logx_cfg_t *cfg, logx_t **out);
 
-    /* Close and free resources. Safe to call multiple times. */
-    void logx_destroy(logx_t *logger);
+    /* Close and free resources. */
+    logx_errorcodes_t logx_destroy(logx_t *logger);
 
     /* Enable/Disable console logging */
     logx_errorcodes_t logx_enable_console_logging(logx_t *logger);
@@ -89,10 +111,19 @@ extern "C"
     logx_errorcodes_t logx_enable_print_config(logx_t *logger);
     logx_errorcodes_t logx_disable_print_config(logx_t *logger);
 
+    /* Enable/Disable syslog sink */
+    logx_errorcodes_t logx_enable_syslog(logx_t *logger);
+    logx_errorcodes_t logx_disable_syslog(logx_t *logger);
+    logx_errorcodes_t logx_set_syslog_facility(logx_t *logger, logx_syslog_facility_t facility);
+
     /* Helper functions - LogX will internally call */
     /* Log a message. file/func/line are helpers provided by macros below. */
     void logx_log(logx_t *logger, logx_level_t level, const char *file, const char *func, int line,
                   const char *fmt, ...);
+
+    /* Extended variant with per-call flags (e.g. LOGX_FLAG_SYSLOG). */
+    void logx_log_f(logx_t *logger, logx_level_t level, uint32_t flags, const char *file,
+                    const char *func, int line, const char *fmt, ...);
 
     /* Helper: Checks if enough time has passed since the last logged message */
     static inline int logx_freq_check(int sec, time_t *last_logged);
@@ -126,6 +157,29 @@ extern "C"
 #define LOGX_FATAL(logger, fmt, ...)                                                         \
     logx_log((logger), LOGX_LEVEL_FATAL, LOGX_FILENAME(__FILE__), __func__, __LINE__, (fmt), \
              ##__VA_ARGS__)
+
+/* Syslog variants — same as above but also route to syslog when enable_syslog=1 */
+#define LOGX_TRACE_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_TRACE, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_DEBUG_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_DEBUG, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_INFO_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_INFO, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_WARN_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_WARN, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_ERROR_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_ERROR, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_BANNER_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_BANNER, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
+#define LOGX_FATAL_SYSLOG(logger, fmt, ...)                                                     \
+    logx_log_f((logger), LOGX_LEVEL_FATAL, LOGX_FLAG_SYSLOG, LOGX_FILENAME(__FILE__), __func__, \
+               __LINE__, (fmt), ##__VA_ARGS__)
 
 #define LOGX_FREQ(sec, last_logged) logx_freq_check((sec), &(last_logged))
 

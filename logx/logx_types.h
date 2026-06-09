@@ -30,7 +30,8 @@ typedef enum
     LOGX_FIELD_INT,
     LOGX_FIELD_LEVEL,
     LOGX_FIELD_ROTATE_TYPE,
-    LOGX_FIELD_TS_FMT
+    LOGX_FIELD_TS_FMT,
+    LOGX_FIELD_SYSLOG_FACILITY
 } logx_field_type_t;
 
 typedef enum

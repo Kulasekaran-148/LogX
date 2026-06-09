@@ -26,51 +26,15 @@ DOCS_DIR 	:= docs
 LATEX_DIR 	:= $(DOCS_DIR)/latex
 
 # ─────────────────────────────────────────────────────────────
-# newline trick — the blank line between define/endef is
-# critical; do not remove it
+# Helper: copy all executables found under a build subtree
+# into a destination directory, printing each one installed.
+#   Usage: $(call install_exes_from,build_subdir,dest_dir)
 # ─────────────────────────────────────────────────────────────
-define newline
-
-
-endef
-
-# File lists
-
-EXAMPLE_EXE_FILES := 						\
-	binary_string							\
-	default_settings						\
-	parsing_from_custom_file				\
-	parsing_from_default_file				\
-	passing_configuration					\
-	pause_resume_timer						\
-	stopwatch_timer							\
-	timer_auto								\
-	logx_rate_limiting						\
-	ts_format_change	
-
-BENCHMARK_EXE_FILES :=						\
-	console_logging							\
-	printf_logging							\
-
-# ─────────────────────────────────────────────────────────────
-# Helper: find and install a single file recursively
-#   Usage: $(call find_and_install,filename,dest_dir)
-# ─────────────────────────────────────────────────────────────
-define find_and_install
-	@{ \
-		matches=$$(find $(PROJECT_ROOT) -type f -name "$(1)" 2>/dev/null); \
-		if [ -z "$$matches" ]; then \
-			echo "  ✘ WARNING: $(1) not found, skipping"; \
-		else \
-			first=$$(echo "$$matches" | head -n 1); \
-			count=$$(echo "$$matches" | grep -c .); \
-			if [ "$$count" -gt 1 ]; then \
-				echo "  ⚠ WARNING: $(1) found in multiple locations, using first:"; \
-				echo "$$matches" | sed 's/^/      /'; \
-			fi; \
-			install -m 644 "$$first" "$(2)/$(1)" && echo "  ✔ $(1)"; \
-		fi; \
-	}
+define install_exes_from
+	@find $(1) -type f -perm /111 2>/dev/null | sort | while read exe; do \
+		name=$$(basename "$$exe"); \
+		install -m 755 "$$exe" "$(2)/$$name" && echo "  ✔ $$name"; \
+	done
 endef
 
 # ==============================
@@ -221,9 +185,9 @@ release: format rebuild ## Create releases folder
 	@cp build/logx/$(LIB_NAME).so* $(RELEASES_DIR)/$(VERSION)/
 	@cp build/logx/$(LIB_NAME).a* $(RELEASES_DIR)/$(VERSION)/
 	@echo "📁 Copying example executables..."
-	$(foreach f,$(EXAMPLE_EXE_FILES),$(call find_and_install,$(f),$(RELEASES_EXAMPLES_DIR))$(newline))
+	$(call install_exes_from,$(BUILD_DIR)/examples,$(RELEASES_EXAMPLES_DIR))
 	@echo "📁 Copying benchmarks executables..."
-	$(foreach f,$(BENCHMARK_EXE_FILES),$(call find_and_install,$(f),$(RELEASES_BENCHMARKS_DIR))$(newline))
+	$(call install_exes_from,$(BUILD_DIR)/benchmarks,$(RELEASES_BENCHMARKS_DIR))
 	@echo "✅ Release folder created at $(RELEASES_DIR)/$(VERSION)/"
 
 # ==============================

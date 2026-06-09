@@ -76,6 +76,18 @@
 #define LOGX_DEFAULT_CFG_TIMESTAMP_FORMAT LOGX_TS_FMT_LOCAL
 #endif
 
+#ifndef LOGX_DEFAULT_CFG_ENABLE_SYSLOG
+#define LOGX_DEFAULT_CFG_ENABLE_SYSLOG 0
+#endif
+
+#ifndef LOGX_DEFAULT_CFG_SYSLOG_FACILITY
+#define LOGX_DEFAULT_CFG_SYSLOG_FACILITY LOGX_SYSLOG_FACILITY_USER
+#endif
+
+#ifndef LOGX_DEFAULT_CFG_SYSLOG_IDENT
+#define LOGX_DEFAULT_CFG_SYSLOG_IDENT NULL
+#endif
+
 /* Default LogX Configuration file paths */
 #define LOGX_DEFAULT_CFG_YML_FILEPATH  "./logx_cfg.yml"
 #define LOGX_DEFAULT_CFG_YAML_FILEPATH "./logx_cfg.yaml"
@@ -96,6 +108,9 @@
 #define LOGX_KEY_BANNER_PATTERN         "banner_pattern"
 #define LOGX_KEY_PRINT_CONFIG           "print_config"
 #define LOGX_KEY_TIMESTAMP_FORMAT       "timestamp_format"
+#define LOGX_KEY_ENABLE_SYSLOG          "enable_syslog"
+#define LOGX_KEY_SYSLOG_FACILITY        "syslog_facility"
+#define LOGX_KEY_SYSLOG_IDENT           "syslog_ident"
 
 typedef struct
 {

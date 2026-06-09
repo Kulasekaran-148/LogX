@@ -16,8 +16,8 @@
 int main()
 {
     // Initialize logger
-    logx_t *logger = logx_create(NULL); // passing NULL to use default configuration
-    if (!logger)
+    logx_t *logger = NULL;
+    if (logx_create(NULL, &logger) != LOGX_ERR_SUCCESS) // passing NULL to use default configuration
     {
         fprintf(stderr, "Failed to create logx logger instance\n");
         return -1;
@@ -26,10 +26,7 @@ int main()
     LOGX_DEBUG(logger, "This is a debug message");
 
     // Destroy logger to clean up resources
-    if (logger)
-    {
-        logx_destroy(logger);
-    }
+    logx_destroy(logger);
 
     return 0;
 }
