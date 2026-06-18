@@ -39,6 +39,8 @@ include(GNUInstallDirs)
 # =====================================
 add_subdirectory(deps/cJSON)
 add_subdirectory(deps/libyaml)
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+add_subdirectory(deps/zlib)
 
 # =====================================
 # Public headers

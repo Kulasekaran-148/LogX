@@ -11,6 +11,8 @@
   "max_logfile_size_mb": 10,
   "max_logfile_backups": 3,
   "rotate_after_days": 1,
+  "compress": 0,
+  "delay_compress": 0,
   "banner_pattern": "=-",
   "print_config": 1,
   "timestamp_format": "LOCAL"

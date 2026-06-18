@@ -138,6 +138,18 @@ clean_docs: ## Clean docs folder
 # ==============================
 .PHONY: fresh_docs
 fresh_docs: clean_docs ## Generate documentation
+	@if ! command -v doxygen >/dev/null 2>&1; then \
+		echo "doxygen not found. Installing..."; \
+		sudo apt-get install -y doxygen; \
+	fi
+	@if ! command -v dot >/dev/null 2>&1; then \
+		echo "graphviz not found. Installing..."; \
+		sudo apt-get install -y graphviz; \
+	fi
+	@if ! dpkg -l texlive-base 2>/dev/null | grep -q "^ii"; then \
+		echo "texlive-base not found. Installing..."; \
+		sudo apt-get install -y texlive-base texlive-latex-extra; \
+	fi
 	@echo "📄 Generating HTML and LaTeX docs..."
 	@doxygen $(DOXYFILE)
 	@if [ -d "$(LATEX_DIR)" ]; then \

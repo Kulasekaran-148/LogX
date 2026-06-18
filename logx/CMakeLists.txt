@@ -27,6 +27,7 @@
     target_link_libraries(${target} PRIVATE
         cjson
         yaml
+        ZLIB::ZLIBSTATIC
     )
 
     target_compile_options(${target} PRIVATE ${LOGX_COMPILE_OPTIONS})
@@ -55,6 +56,7 @@
     target_link_libraries(${target}_static PRIVATE
         cjson
         yaml
+        ZLIB::ZLIBSTATIC
     )
 
     target_compile_options(${target}_static PRIVATE ${LOGX_COMPILE_OPTIONS})

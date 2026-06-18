@@ -24,9 +24,13 @@ file_level: "DEBUG"
 # ---- Rotation Policy ----
 # rotate_type options: BY_SIZE | BY_DATE
 rotate_type: "BY_SIZE"
-rotate_max_Mbytes: 10
-rotate_max_backups: 3
+max_logfile_size_mb: 10
+max_logfile_backups: 3
 rotate_after_days: 1
+# compress: gzip rotated backups (app.log.1.gz, app.log.2.gz, ...)
+compress: 0
+# delay_compress: leave the most-recently rotated file uncompressed for one rotation
+delay_compress: 0
 
 # ---- Appearance ----
 banner_pattern: "=-"

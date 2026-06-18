@@ -24,6 +24,8 @@ struct logx_rotate_cfg_t
     size_t size_mb;          /**< Max log file size in MB before size-based rotation. */
     int max_backups;         /**< Number of backup files to keep (0 = truncate, no backup). */
     int after_days;          /**< Days between rotations for date-based rotation. */
+    int compress;            /**< 1 = gzip-compress rotated backup files (appends `.gz`). */
+    int delay_compress;      /**< 1 = skip compressing the most-recently rotated backup; compress it on the next rotation instead (like logrotate's `delaycompress`). */
 };
 
 #ifdef __cplusplus
@@ -74,6 +76,35 @@ extern "C"
      * @return `LOGX_ERR_SUCCESS` on success, `LOGX_ERR_INVALID_ARG` if logger is NULL.
      */
     logx_errorcodes_t logx_set_rotation_after_days(logx_t *logger, int after_days);
+
+    /**
+     * @brief Enable or disable gzip compression of rotated backup files.
+     *
+     * When enabled, each backup file is compressed to `<path>.N.gz` immediately
+     * after rotation (unless `delay_compress` is also enabled).
+     *
+     * @param[in] logger Pointer to the logger instance.
+     * @param[in] enable 1 to enable compression, 0 to disable.
+     * @return `LOGX_ERR_SUCCESS` on success, `LOGX_ERR_INVALID_ARG` if logger is NULL.
+     */
+    logx_errorcodes_t logx_set_compress(logx_t *logger, int enable);
+
+    /**
+     * @brief Enable or disable delayed compression of the most-recently rotated backup.
+     *
+     * When both `compress` and `delay_compress` are enabled, the file rotated to
+     * `<path>.1` is left uncompressed until the *next* rotation, at which point it
+     * is compressed before being shifted to `<path>.2.gz`. This mirrors logrotate's
+     * `delaycompress` directive and is useful when another process may still hold
+     * the recently rotated file open.
+     *
+     * Has no effect unless `compress` is also enabled.
+     *
+     * @param[in] logger Pointer to the logger instance.
+     * @param[in] enable 1 to enable delayed compression, 0 to disable.
+     * @return `LOGX_ERR_SUCCESS` on success, `LOGX_ERR_INVALID_ARG` if logger is NULL.
+     */
+    logx_errorcodes_t logx_set_delay_compress(logx_t *logger, int enable);
 
     /**
      * @brief Internal — check rotation criteria and rotate if needed.

@@ -17,29 +17,87 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <zlib.h>
 
 /**
- * @brief Function that rotates log files, maintaining a maximum number of backups.
+ * @brief Compress a file to `<src_path>.gz` using zlib, then delete the original.
  *
- * This function implements a simple log rotation mechanism by renaming existing
- * log files with numeric suffixes.
+ * On any error the partially-written `.gz` file is removed and the original is
+ * left intact so that log data is never silently lost.
  *
- * @param[in] path         Path to the main log file.
- * @param[in] dwMaxBackups Maximum number of backup files to retain.
- *
- * @return logx_errorcodes_t
- *
- * @note For e.g: Consider dwMaxBackups = 3 and log path is ./test.log.
- *
- *       - When rotation happens, test.log --> test.log.1 and a new empty test.log is created
- *
- *       - When next rotation happens, test.log.1 --> test.log.2, test.log --> test.log.1 and a new
- * test.log is created
- *
- *       - When next rotation happens, test.log.2 is deleted, test.log.1 --> test.log.2, test.log
- * --> test.log.1 and a new test.log is created
+ * @param[in] src_path Path to the uncompressed source file.
+ * @return `LOGX_ERR_SUCCESS` on success, `LOGX_ERR_COMPRESS_FAILED` on zlib error,
+ *         or `LOGX_ERR_FILE_OPEN_FAILED` if the source cannot be opened.
  */
-static logx_errorcodes_t rotate_files(const char *path, int dwMaxBackups)
+static logx_errorcodes_t compress_file(const char *src_path)
+{
+    char gz_path[LOGX_LOG_FILE_PATH_MAX_LEN_BYTES];
+    char buf[65536];
+    FILE *src              = NULL;
+    gzFile gz              = NULL;
+    size_t n               = 0;
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    snprintf(gz_path, sizeof(gz_path), "%s.gz", src_path);
+
+    src = fopen(src_path, "rb");
+    if (!src)
+    {
+        return LOGX_ERR_FILE_OPEN_FAILED;
+    }
+
+    gz = gzopen(gz_path, "wb9");
+    if (!gz)
+    {
+        fclose(src);
+        return LOGX_ERR_COMPRESS_FAILED;
+    }
+
+    while ((n = fread(buf, 1, sizeof(buf), src)) > 0)
+    {
+        if (gzwrite(gz, buf, (unsigned int)n) != (int)n)
+        {
+            eErr = LOGX_ERR_COMPRESS_FAILED;
+            break;
+        }
+    }
+
+    gzclose(gz);
+    fclose(src);
+
+    if (eErr != LOGX_ERR_SUCCESS)
+    {
+        unlink(gz_path); /* remove partial output; original is preserved */
+        return eErr;
+    }
+
+    unlink(src_path); /* delete original only after successful compression */
+    return LOGX_ERR_SUCCESS;
+}
+
+/**
+ * @brief Rotate log backup files, shifting numeric suffixes and optionally compressing.
+ *
+ * Implements the same strategy as logrotate:
+ *  - The oldest backup (`path.max_backups` / `path.max_backups.gz`) is deleted.
+ *  - Each existing backup is shifted up by one: `path.N` → `path.(N+1)`,
+ *    preserving the `.gz` extension when the file is already compressed.
+ *  - The active log is renamed to `path.1`.
+ *  - If `compress` is set and `delay_compress` is not, `path.1` is immediately
+ *    compressed to `path.1.gz`.
+ *  - If both `compress` and `delay_compress` are set, `path.2` (the backup from
+ *    the *previous* rotation, still uncompressed) is compressed instead, and
+ *    `path.1` is left plain until the next rotation.
+ *
+ * @param[in] path          Path to the active log file.
+ * @param[in] dwMaxBackups  Maximum backup files to retain (0 = truncate, no backup).
+ * @param[in] compress      1 = compress backups with gzip.
+ * @param[in] delay_compress 1 = defer compression of the newest backup by one rotation.
+ *
+ * @return `LOGX_ERR_SUCCESS` on success, or an error code on failure.
+ */
+static logx_errorcodes_t rotate_files(const char *path, int dwMaxBackups, int compress,
+                                      int delay_compress)
 {
     logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
     int fd                 = -1;
@@ -63,22 +121,52 @@ static logx_errorcodes_t rotate_files(const char *path, int dwMaxBackups)
         goto END;
     }
 
+    /* delete the oldest backup (try compressed form first, then plain) */
+    snprintf(oldname, sizeof(oldname), "%s.%d.gz", path, dwMaxBackups);
+    unlink(oldname);
     snprintf(oldname, sizeof(oldname), "%s.%d", path, dwMaxBackups);
-    unlink(oldname); /* ignore errors */
+    unlink(oldname);
 
-    for (int i = dwMaxBackups - 1; i >= 0; --i)
+    /* shift backups: path.(N-1) → path.N, preserving .gz extension */
+    for (int i = dwMaxBackups - 1; i >= 1; --i)
     {
-        if (i == 0)
+        snprintf(oldname, sizeof(oldname), "%s.%d.gz", path, i);
+        if (access(oldname, F_OK) == 0)
         {
-            snprintf(oldname, sizeof(oldname), "%s", path);
+            snprintf(newname, sizeof(newname), "%s.%d.gz", path, i + 1);
         }
         else
         {
             snprintf(oldname, sizeof(oldname), "%s.%d", path, i);
+            snprintf(newname, sizeof(newname), "%s.%d", path, i + 1);
         }
-        snprintf(newname, sizeof(newname), "%s.%d", path, i + 1);
-        /* rename will fail if oldname doesn't exist - that's fine */
+        /* rename will fail silently if oldname doesn't exist — that's fine */
         rename(oldname, newname);
+    }
+
+    /* rotate the active log to path.1 (always uncompressed at this point) */
+    snprintf(newname, sizeof(newname), "%s.1", path);
+    rename(path, newname);
+
+    /* compress after rotation, mirroring logrotate behaviour */
+    if (compress)
+    {
+        if (!delay_compress)
+        {
+            /* compress the freshly rotated backup immediately */
+            snprintf(oldname, sizeof(oldname), "%s.1", path);
+            compress_file(oldname); /* failure is non-fatal: file stays uncompressed */
+        }
+        else
+        {
+            /* delaycompress: compress path.2 (from the previous rotation) if it is
+             * still plain; path.1 will be compressed on the next rotation */
+            snprintf(oldname, sizeof(oldname), "%s.2", path);
+            if (access(oldname, F_OK) == 0)
+            {
+                compress_file(oldname);
+            }
+        }
     }
 
 END:
@@ -133,8 +221,9 @@ static logx_errorcodes_t process_log_rotation(logx_t *ptLogger)
     }
 
     /* perform log rotation */
-    if ((eErr = rotate_files(ptLogger->cfg.file_path, ptLogger->cfg.rotate.max_backups)) !=
-        LOGX_ERR_SUCCESS)
+    if ((eErr = rotate_files(ptLogger->cfg.file_path, ptLogger->cfg.rotate.max_backups,
+                             ptLogger->cfg.rotate.compress,
+                             ptLogger->cfg.rotate.delay_compress)) != LOGX_ERR_SUCCESS)
     {
         goto END;
     }
@@ -325,6 +414,42 @@ END:
     return eErr;
 }
 
+logx_errorcodes_t logx_set_compress(logx_t *logger, int enable)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    if (!logger)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    logger->cfg.rotate.compress = enable;
+    pthread_mutex_unlock(&logger->lock);
+
+END:
+    return eErr;
+}
+
+logx_errorcodes_t logx_set_delay_compress(logx_t *logger, int enable)
+{
+    logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
+
+    if (!logger)
+    {
+        eErr = LOGX_ERR_INVALID_ARG;
+        goto END;
+    }
+
+    pthread_mutex_lock(&logger->lock);
+    logger->cfg.rotate.delay_compress = enable;
+    pthread_mutex_unlock(&logger->lock);
+
+END:
+    return eErr;
+}
+
 logx_errorcodes_t logx_rotate_now(logx_t *logger)
 {
     int r = 0;
@@ -347,7 +472,8 @@ logx_errorcodes_t logx_rotate_now(logx_t *logger)
             fflush(logger->fp);
         }
 
-        r = rotate_files(logger->cfg.file_path, logger->cfg.rotate.max_backups);
+        r = rotate_files(logger->cfg.file_path, logger->cfg.rotate.max_backups,
+                         logger->cfg.rotate.compress, logger->cfg.rotate.delay_compress);
 
         if (logger->fp)
         {

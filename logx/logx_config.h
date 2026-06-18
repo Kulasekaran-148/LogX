@@ -68,6 +68,14 @@
 #define LOGX_DEFAULT_CFG_LOG_ROTATE_AFTER_DAYS 1
 #endif
 
+#ifndef LOGX_DEFAULT_CFG_COMPRESS
+#define LOGX_DEFAULT_CFG_COMPRESS 0
+#endif
+
+#ifndef LOGX_DEFAULT_CFG_DELAY_COMPRESS
+#define LOGX_DEFAULT_CFG_DELAY_COMPRESS 0
+#endif
+
 #ifndef LOGX_DEFAULT_CFG_BANNER_PATTERN
 #define LOGX_DEFAULT_CFG_BANNER_PATTERN "="
 #endif
@@ -109,6 +117,8 @@
 #define LOGX_KEY_MAX_LOGFILE_SIZE_MB    "max_logfile_size_mb"
 #define LOGX_KEY_MAX_LOGFILE_BACKUPS    "max_logfile_backups"
 #define LOGX_KEY_ROTATE_AFTER_DAYS      "rotate_after_days"
+#define LOGX_KEY_COMPRESS               "compress"
+#define LOGX_KEY_DELAY_COMPRESS         "delay_compress"
 #define LOGX_KEY_BANNER_PATTERN         "banner_pattern"
 #define LOGX_KEY_PRINT_CONFIG           "print_config"
 #define LOGX_KEY_TIMESTAMP_FORMAT       "timestamp_format"
