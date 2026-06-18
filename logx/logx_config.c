@@ -1,12 +1,16 @@
 /**
  * @file logx_config.c
- * @author kulasekaran (kulasekaranslrk@gmail.com)
- * @brief This file declares the keys used by yaml and json parsers
- * @version 0.1
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Configuration field table and helper functions used by the YAML/JSON parsers.
+ *
+ * Defines `LOGX_FIELD_TABLE` — one row per `logx_cfg_t` field — which drives all
+ * config parsing, default application, and configuration printing without per-field
+ * switch statements scattered throughout the codebase.
+ *
+ * @version 2.0.0
  * @date 2025-11-11
  *
  * @copyright Copyright (c) 2025
- *
  */
 
 #include "logx_config.h"
@@ -209,6 +213,13 @@ const char *logx_ts_fmt_to_string(logx_ts_fmt_t eTsFormat)
     return "ukwn";
 }
 
+/**
+ * @brief Parse a log level from a string, falling back to `fallback` on unknown input.
+ *
+ * @param[in] str      String to parse (case-insensitive), e.g. `"TRACE"`.
+ * @param[in] fallback Value returned when `str` is NULL or unrecognised.
+ * @return Parsed `logx_level_t`, or `fallback`.
+ */
 static logx_level_t logx_level_from_str(const char *str, logx_level_t fallback)
 {
     if (!str)
@@ -220,6 +231,13 @@ static logx_level_t logx_level_from_str(const char *str, logx_level_t fallback)
     return fallback;
 }
 
+/**
+ * @brief Parse a rotation type from a string, falling back to `fallback` on unknown input.
+ *
+ * @param[in] str      String to parse (case-insensitive), e.g. `"BY_SIZE"`.
+ * @param[in] fallback Value returned when `str` is NULL or unrecognised.
+ * @return Parsed `logx_rotate_type_t`, or `fallback`.
+ */
 static logx_rotate_type_t logx_rotate_type_from_str(const char *str, logx_rotate_type_t fallback)
 {
     if (!str)
@@ -231,6 +249,13 @@ static logx_rotate_type_t logx_rotate_type_from_str(const char *str, logx_rotate
     return fallback;
 }
 
+/**
+ * @brief Parse a timestamp format from a string, falling back to `fallback` on unknown input.
+ *
+ * @param[in] str      String to parse (case-insensitive), e.g. `"ISO8601"`.
+ * @param[in] fallback Value returned when `str` is NULL or unrecognised.
+ * @return Parsed `logx_ts_fmt_t`, or `fallback`.
+ */
 static logx_ts_fmt_t logx_ts_fmt_from_str(const char *str, logx_ts_fmt_t fallback)
 {
     if (!str)

@@ -140,9 +140,15 @@ clean_docs: ## Clean docs folder
 fresh_docs: clean_docs ## Generate documentation
 	@echo "📄 Generating HTML and LaTeX docs..."
 	@doxygen $(DOXYFILE)
-	@echo "📚 Building refman.pdf..."
-	@$(MAKE) -C $(LATEX_DIR)  # Run make in the LaTeX folder
-	@echo "✅ Docs generation complete."
+	@if [ -d "$(LATEX_DIR)" ]; then \
+		echo "📚 Building refman.pdf..."; \
+		$(MAKE) -C $(LATEX_DIR); \
+		echo "✅ Docs generation complete (HTML + PDF)."; \
+	else \
+		echo "ℹ️  LaTeX output disabled — HTML docs at $(DOCS_DIR)/html/index.html"; \
+		echo "   To enable PDF: set GENERATE_LATEX = YES in Doxyfile, install texlive-latex-extra"; \
+		echo "✅ Docs generation complete (HTML only)."; \
+	fi
 
 # ==============================
 # Create .deb package

@@ -10,7 +10,7 @@ OUTPUT_LANGUAGE        = English
 FULL_PATH_NAMES        = YES
 
 # Input files
-INPUT                  = ./include ./src
+INPUT                  = ./logx
 RECURSIVE              = YES
 EXCLUDE                = ./tests
 
@@ -37,7 +37,7 @@ HTML_DYNAMIC_SECTIONS  = YES
 HTML_TIMESTAMP         = YES
 
 # Generate LaTeX/PDF (optional)
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = NO
 
 # Diagram support
 HAVE_DOT               = YES

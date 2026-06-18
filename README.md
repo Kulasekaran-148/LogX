@@ -41,8 +41,12 @@
   - Log rotation
     - Based on Size / Date
     - Set number of backups
+  - Automatic log directory creation — intermediate directories for the log path are created if they do not exist
+- Customizable timestamp format — `LOCAL`, `UTC`, `EPOCH_S`, `EPOCH_MS`, `EPOCH_US`, `ISO8601`, `RFC2822`
+- Log rate limiting — throttle noisy log sites to at most once every N seconds
 - Stopwatch timing
 - Thread-safe implementation
+- Consistent error code returns on all public APIs
 - Lightweight and minimal dependencies
 
 <details>
@@ -184,12 +188,13 @@ main.c:
 #include <logx.h> // <-- Include logx header
 
 int main() {
-    // Initialize logger
-    logx_t *logger = logx_create(NULL); // passing NULL to use default configuration
-    if(!logger)
+    logx_t *logger = NULL;
+
+    // Initialize logger — pass NULL to use default/auto-detected configuration
+    if (logx_create(NULL, &logger) != LOGX_ERR_SUCCESS)
     {
-      fprintf(stderr, "Failed to create logx logger instance\n");
-      return -1;
+        fprintf(stderr, "Failed to create logx logger instance\n");
+        return -1;
     }
 
     LOGX_BANNER(logger, "LogX is working");
@@ -199,7 +204,7 @@ int main() {
     LOGX_WARN(logger, "LogX warn message");
     LOGX_ERROR(logger, "LogX error message");
     LOGX_FATAL(logger, "LogX fatal message");
-    
+
     // Destroy logger to clean up resources
     logx_destroy(logger);
     return 0;

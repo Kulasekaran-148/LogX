@@ -1,12 +1,15 @@
 /**
- * @file logx_timers.c
+ * @file logx_time.c
  * @author Kulasekaran (kulasekaranslrk@gmail.com)
- * @brief Contains function related to LogX stopwatch timers
- * @version 0.1
+ * @brief Stopwatch timer implementation and timestamp formatting for LogX.
+ *
+ * Provides start/stop/pause/resume timer APIs, an auto-scope timer macro helper,
+ * and all timestamp format setter functions.
+ *
+ * @version 2.0.0
  * @date 2025-11-22
  *
  * @copyright Copyright (c) 2025
- *
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -317,24 +320,6 @@ static int find_timer_index(logx_t *logger, const char *name)
     return -1;
 }
 
-/**
- * @brief Start a new stopwatch timer or resume an existing one.
- *
- * If a timer with the given name already exists:
- *   - If it is paused, the timer is resumed.
- *   - If it is already running, no action is taken.
- *
- * If no timer exists and capacity permits, a new timer is created and started.
- *
- * @param[in] logger Pointer to the logx instance.
- * @param[in] name   Null-terminated timer name.
- *
- * @note Thread-safe: acquires `logger->lock`.
- * @note If the maximum number of timers (`LOGX_MAX_TIMERS`) has been reached,
- *       the function prints a warning and returns.
- * @note If `logger` or `name` is NULL, the function returns immediately.
- * @return Pointer to the started or resumed `logx_timer_t` instance,
- */
 logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
 {
     if (!logger || !name)
@@ -390,21 +375,6 @@ logx_timer_t *logx_timer_start(logx_t *logger, const char *name)
     return t;
 }
 
-/**
- * @brief Pause a running stopwatch timer.
- *
- * If the timer is found and currently running, its elapsed
- * duration since the last start/resume is added to the accumulated
- * total and the timer is marked as paused.
- *
- * If the timer does not exist or is already paused, no action is taken.
- *
- * @param[in] logger Pointer to the logx instance.
- * @param[in] name   Null-terminated timer name to pause.
- *
- * @note Thread-safe: acquires `logger->lock`.
- * @note If `logger` or `name` is NULL, the function returns immediately.
- */
 void logx_timer_pause(logx_t *logger, const char *name)
 {
     if (!logger || !name)
@@ -436,20 +406,6 @@ void logx_timer_pause(logx_t *logger, const char *name)
     pthread_mutex_unlock(&logger->lock);
 }
 
-/**
- * @brief Resume a paused stopwatch timer.
- *
- * If the timer exists and is currently paused, this function
- * records a new `start` timestamp and marks it as running again.
- *
- * If the timer does not exist or is already running, no action is taken.
- *
- * @param[in] logger Pointer to the logx instance.
- * @param[in] name   Null-terminated timer name to resume.
- *
- * @note Thread-safe: acquires `logger->lock`.
- * @note If `logger` or `name` is NULL, the function returns immediately.
- */
 void logx_timer_resume(logx_t *logger, const char *name)
 {
     if (!logger || !name)
@@ -479,26 +435,6 @@ void logx_timer_resume(logx_t *logger, const char *name)
     pthread_mutex_unlock(&logger->lock);
 }
 
-/**
- * @brief Stop a stopwatch timer, log the elapsed time, and remove it.
- *
- * If the timer is running, the time since its last start/resume is added
- * to the accumulated elapsed time before formatting and logging.
- *
- * The formatted output is logged to:
- *   - Console, if console logging is enabled.
- *   - Log file, if file logging is enabled.
- *
- * After logging, the timer is removed from the logger's timer list.
- *
- * @param[in] logger Pointer to the logx instance.
- * @param[in] name   Null-terminated timer name to stop and remove.
- *
- * @note Thread-safe: acquires `logger->lock`.
- * @note Timer entries are removed by shifting the remaining array elements.
- *       On systems with high timer churn, consider a linked list instead.
- * @note If `logger` or `name` is NULL, or timer not found, the function returns immediately.
- */
 void logx_timer_stop(logx_t *logger, const char *name)
 {
     if (!logger || !name)

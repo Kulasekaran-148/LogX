@@ -1,3 +1,13 @@
+/**
+ * @file logx_rotation.c
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Log file rotation implementation — size-based, date-based, and on-demand rotation.
+ * @version 2.0.0
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ */
+
 #include "logx_rotation.h"
 #include "fcntl.h"
 #include "logx.h"

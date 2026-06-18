@@ -1,12 +1,16 @@
 /**
  * @file logx_config.h
- * @author kulasekaran (kulasekaranslrk@gmail.com)
- * @brief This file defines the keys used in configuration files for logx logger
- * @version 0.1
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Default configuration values, config-file key names, and the field
+ *        descriptor table used by the YAML/JSON parsers.
+ *
+ * All `LOGX_DEFAULT_CFG_*` macros are guarded with `#ifndef` so they can be
+ * overridden by the application before including `<logx.h>`.
+ *
+ * @version 2.0.0
  * @date 2025-11-10
  *
  * @copyright Copyright (c) 2025
- *
  */
 
 #ifndef LOGX_CONFIG_KEYS_H
@@ -112,30 +116,75 @@
 #define LOGX_KEY_SYSLOG_FACILITY        "syslog_facility"
 #define LOGX_KEY_SYSLOG_IDENT           "syslog_ident"
 
+/**
+ * @brief Descriptor for a single configuration field.
+ *
+ * The parser iterates over `LOGX_FIELD_TABLE` and uses these descriptors to
+ * locate fields inside `logx_cfg_t` via `offset` and to apply the correct
+ * type conversion via `type`.
+ */
 typedef struct
 {
-    const char *key;     /* JSON/YAML/INI key name */
-    const char *section; /* Used by INI parser only */
-    logx_field_type_t type;
-    size_t offset; /* offsetof(logx_cfg_t, field) */
+    const char *key;        /**< JSON/YAML key name used in configuration files. */
+    const char *section;    /**< Section name (reserved for future INI parser support). */
+    logx_field_type_t type; /**< How to interpret and store the parsed value. */
+    size_t offset;          /**< `offsetof(logx_cfg_t, field)` for direct memory write. */
     union
     {
-        const char *str_default;
-        int int_default;
+        const char *str_default; /**< Default value for string fields. */
+        int int_default;         /**< Default value for non-string fields. */
     } def;
 } logx_field_desc_t;
 
-/* Declared here, defined once in logx_config.c */
+/** @brief Global configuration field descriptor table — one entry per `logx_cfg_t` field. */
 extern const logx_field_desc_t LOGX_FIELD_TABLE[];
+
+/** @brief Number of entries in `LOGX_FIELD_TABLE`. */
 extern const size_t LOGX_FIELD_TABLE_COUNT;
 
-/* Functions */
+/**
+ * @brief Warn about JSON keys that are present in the file but not in the field table.
+ * @param[in] root Parsed cJSON root object.
+ */
 void log_missing_json_keys(cJSON *root);
+
+/**
+ * @brief Print the active logger configuration to stdout.
+ * @param[in] cfg Configuration to print.
+ */
 void logx_cfg_print(const logx_cfg_t *cfg);
+
+/**
+ * @brief Apply a parsed value (or its default) to the correct field in `cfg`.
+ *
+ * @param[in,out] cfg      Configuration structure to write into.
+ * @param[in]     desc     Field descriptor describing the target field.
+ * @param[in]     str_val  Parsed string value (used for string and enum fields).
+ * @param[in]     int_val  Parsed integer value (used for bool/int fields).
+ * @param[in]     found    Non-zero if the key was present in the config source.
+ */
 void logx_apply_field(logx_cfg_t *cfg, const logx_field_desc_t *desc, const char *str_val,
                       int int_val, bool found);
+
+/**
+ * @brief Deep-copy all string fields in `cfg` to heap-allocated buffers.
+ *
+ * Must be called when `cfg` is initialised from stack-allocated or literal strings
+ * so that the logger owns its own copies and the originals can be freed/reused.
+ *
+ * @param[in,out] cfg Configuration whose string fields are to be duplicated.
+ */
 void logx_cfg_dup_strings(logx_cfg_t *cfg);
+
+/**
+ * @brief Free all heap-allocated string fields inside `cfg`.
+ *
+ * Sets each freed pointer to NULL. Safe to call on a zeroed struct.
+ *
+ * @param[in,out] cfg Configuration whose string fields are to be freed.
+ */
 void logx_cfg_free_strings(logx_cfg_t *cfg);
+
 const char *logx_level_to_string(logx_level_t eLogLevel);
 const char *logx_rotate_type_to_string(logx_rotate_type_t eRotateType);
 const char *logx_ts_fmt_to_string(logx_ts_fmt_t eTsFormat);

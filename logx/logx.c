@@ -1,3 +1,13 @@
+/**
+ * @file logx.c
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Core LogX implementation — logger lifecycle, log dispatch, and runtime configuration APIs.
+ * @version 2.0.0
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ */
+
 #define _POSIX_C_SOURCE 200809L
 
 #include "logx.h"
@@ -380,6 +390,12 @@ END:
     return eErr;
 }
 
+/**
+ * @brief Populate `cfg` with built-in default values from the field descriptor table.
+ *
+ * @param[out] cfg Configuration structure to initialise.
+ * @return `LOGX_ERR_SUCCESS`, or `LOGX_ERR_INVALID_ARG` if cfg is NULL.
+ */
 static logx_errorcodes_t logx_set_default_cfg(logx_cfg_t *cfg)
 {
     if (!cfg)
@@ -605,6 +621,13 @@ END:
 #undef YAML_MAX_KEYS
 }
 
+/**
+ * @brief Dispatch to the correct parser (YAML or JSON) based on file extension.
+ *
+ * @param[in]  filepath Path to the configuration file.
+ * @param[out] cfg      Structure to populate with parsed values.
+ * @return `LOGX_ERR_SUCCESS` on success, error otherwise.
+ */
 static logx_errorcodes_t logx_parse_config_file(const char *filepath, logx_cfg_t *cfg)
 {
     logx_errorcodes_t eErr = LOGX_ERR_SUCCESS;
@@ -641,6 +664,16 @@ END:
     return eErr;
 }
 
+/**
+ * @brief Try loading configuration from the first accessible config file.
+ *
+ * Checks (in order): the path defined by `LOGX_CFG_FILEPATH` (if defined),
+ * then `./logx_cfg.yml`, `./logx_cfg.yaml`, and `./logx_cfg.json`.
+ * Returns a non-success code (and prints a message) if none are found.
+ *
+ * @param[out] cfg Structure to populate.
+ * @return `LOGX_ERR_SUCCESS` if a file was found and parsed successfully.
+ */
 static logx_errorcodes_t logx_load_cfg_from_file(logx_cfg_t *cfg)
 {
     if (!cfg)

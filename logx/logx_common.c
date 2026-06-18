@@ -1,3 +1,13 @@
+/**
+ * @file logx_common.c
+ * @author Kulasekaran (kulasekaranslrk@gmail.com)
+ * @brief Shared utility functions — enum-to-string maps, file locking, and directory helpers.
+ * @version 2.0.0
+ * @date 2025-11-10
+ *
+ * @copyright Copyright (c) 2025
+ */
+
 #include "logx_common.h"
 #include "logx.h"
 #include "logx_errorcodes.h"
@@ -40,14 +50,6 @@ const size_t LOGX_TS_FMT_MAP_COUNT = ARRAY_SIZE(LOGX_TS_FMT_MAP);
 
 /* ========================= Internal Helper functions ========================= */
 
-/**
- * @brief Acquire an exclusive advisory lock on a file descriptor using flock().
- *
- * @param[in] fd File descriptor to lock.
- * @return int 0 on success, -1 on failure (invalid fd or flock error).
- * @note This uses advisory locking. Other processes must also use flock()
- *       for the lock to be respected.
- */
 logx_errorcodes_t exclusive_flock(int fd)
 {
     if (fd < 0)
@@ -57,13 +59,6 @@ logx_errorcodes_t exclusive_flock(int fd)
     return LOGX_ERR_SUCCESS;
 }
 
-/**
- * @brief Release a previously acquired advisory lock on a file descriptor.
- *
- * @param[in] fd File descriptor to unlock.
- * @return logx_errorcodes_t
- * @note Only unlocks descriptors previously locked with flock().
- */
 logx_errorcodes_t unlock_flock(int fd)
 {
     if (fd < 0)
@@ -97,12 +92,6 @@ const char *logx_level_to_color(logx_level_t eLogLevel)
     return COLOR_RESET;
 }
 
-/**
- * @brief Helper: return "Enabled/Disabled" based on value
- *
- * @param[in] bEnable Value to be checked
- * @return const char* "Enabled" or "Disabled"
- */
 const char *logx_check(int bEnable)
 {
     if (bEnable)
@@ -111,6 +100,16 @@ const char *logx_check(int bEnable)
         return "Disabled";
 }
 
+/**
+ * @brief Recursively create a directory path, like `mkdir -p`.
+ *
+ * Creates each component of `path` in turn, ignoring `EEXIST` at each step.
+ * The path must fit within 255 bytes.
+ *
+ * @param[in] path Null-terminated directory path to create.
+ * @return `LOGX_ERR_SUCCESS` if the path exists or was created,
+ *         `LOGX_ERR_DIRECTORY_CREATION_FAILED` on any other error.
+ */
 static logx_errorcodes_t mkdir_p(const char *path)
 {
     char tmp[256];
